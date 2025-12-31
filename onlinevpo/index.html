@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="OnlineVPO: Align Video Diffusion Model with Online Video-Centric Preference Optimization">
+  <meta name="keywords" content="Nerfies, D-NeRF, NeRF">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>OnlineVPO: Align Video Diffusion Model with Online Video-Centric Preference Optimization</title>
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/favicon.svg">
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+</head>
+<body>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <h1 class="title is-1 publication-title">OnlineVPO: Align Video Diffusion Model with Online
+            Video-Centric Preference Optimization</h1>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="">Jiacheng Zhang</a><sup>1</sup>,</span>
+            <span class="author-block">
+              <a href="https://wujie1010.github.io/">Jie Wu</a><sup>2</sup>,</span>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=RQ1PFPQAAAAJ&hl=en">Weifeng Chen</a><sup>2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://scholar.google.com.hk/citations?user=O0gthJQAAAAJ&hl=zh-CN">Yatai Ji</a><sup>1</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://scholar.google.com/citations?user=CVkM9TQAAAAJ&hl=zh-CN">Xuefeng Xiao</a><sup>2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://whuang.org/">Weilin Huang</a><sup>2</sup>,
+            </span>
+            <span class="author-block">
+              <a href="https://www.kaihan.org/">Kai Han</a><sup>1</sup>
+            </span>
+          </div>
+
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>The University of Hong Kong,</span>
+            <span class="author-block"><sup>2</sup>ByteDance</span>
+          </div>
+          
+          <div class="is-size-5 has-text-centered">
+            <span class="author-block"><strong>WACV 2026</strong></span>
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href=""
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="ai ai-arxiv"></i>
+                  </span>
+                  <span>arXiv</span>
+                </a>
+              </span>
+              <!-- Video Link. -->
+            
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            Video diffusion models (VDMs) have demonstrated remarkable capabilities in text-to-video (T2V) generation. 
+            Despite their success, VDMs still suffer from degraded image quality and flickering artifacts. 
+            To address these issues, some approaches have introduced preference learning to exploit human feedback to enhance the video generation. 
+            However, these methods primarily adopt the routine in the image domain without an in-depth investigation into video-specific preference optimization. 
+          </p>
+          <p>
+            In this paper, we reexamine the design of the video preference learning from two key aspects: feedback source and feedback tuning methodology, and present <strong>OnlineVPO</strong>,
+            a more efficient preference learning framework tailored specifically for VDMs. 
+            On the feedback source, we found that the image-level reward model commonly used in existing methods fails to provide a human-aligned video preference signal due to the modality gap. 
+            In contrast, video quality assessment (VQA) models show superior alignment with human perception of video quality. Building on this insight, 
+            we propose leveraging VQA models as a proxy of humans to provide more modality-aligned feedback for VDMs. Regarding the preference tuning methodology, 
+            we introduce an online DPO algorithm tailored for VDMs. It not only enjoys the benefits of superior scalability in optimizing videos with higher resolution and longer duration compared with the existing method, 
+            but also mitigates the insufficient optimization issue caused by off-policy learning via online preference generation and curriculum preference update designs.
+          </p>
+          <p>
+            Extensive experiments on the open-source video-diffusion model demonstrate OnlineVPO as a simple yet effective and, more importantly, scalable preference learning algorithm for video diffusion models.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3">Key Contributions</h2>
+        <div class="content has-text-justified">
+          <ul>
+            <li>
+              <strong>Video-Centric Feedback:</strong> We identify the modality gap in image-based reward models and propose using Video Quality Assessment (VQA) models as a superior proxy for human video preference.
+            </li>
+            <li>
+              <strong>Online Preference Optimization:</strong> We introduce an Online DPO framework specifically tailored for VDMs, addressing the "off-policy" issues found in previous offline methods.
+            </li>
+            <li>
+              <strong>Scalability & Performance:</strong> OnlineVPO demonstrates superior scalability for high-resolution, long-duration videos and achieves state-of-the-art results on VBench.
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Motivation</h2>
+        
+        <div class="content has-text-justified">
+          <p>
+            Current video feedback learning methods primarily rely on (1) <strong>Image-based Reward Models</strong> (e.g., ImageReward). 
+            However, we observe a significant <strong>Modality Gap</strong>: image rewards focus on spatial details but fail to capture temporal distortions (e.g., flickering, motion inconsistency). 
+            (2) <strong>Off-policy Optimization</strong> (e.g., Offline DPO) suffer from <strong>Insufficient Optimization</strong> due to the static dataset, leading to suboptimal video quality.
+          </p>
+        </div>
+        
+        <div class="columns is-centered">
+          <div class="column is-10">
+            <img src="./static/images/teaser_fig.png" class="interpolation-image" alt="Motivation analysis." style="width: 70%;" />
+            <p class="is-size-6 has-text-centered">
+              <em>Figure 1: Comparison of different preference optimization paradigms for VDMs. Existing methods suffer from misaligned feedback, limited scalability, and off-policy optimization.</em>
+            </p>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Method: OnlineVPO</h2>
+        
+        <h3 class="title is-4">1. The Pipeline</h3>
+        <div class="content has-text-justified">
+          <p>
+            We propose <strong>OnlineVPO</strong>, a framework designed to align Video Diffusion Models (VDMs) with human values using video-centric signals.
+            Unlike offline methods, our approach generates preferences on-the-fly and updates the policy via an online curriculum, ensuring the reward model stays aligned with the current policy distribution.
+          </p>
+        </div>
+        
+        <div class="columns is-centered">
+          <div class="column is-10">
+             <img src="./static/images/pipeline_fig.png" class="interpolation-image" alt="OnlineVPO Pipeline" style="width: 80%; margin-bottom: 10px;" />
+             <p class="is-size-6 has-text-centered">
+              <em>Figure 2: Overview of the OnlineVPO framework. We utilize a VQA model for reward labeling and optimize the VDM via direct preference optimization in online manner iteratively.</em>
+            </p>
+          </div>
+        </div>
+
+        <br/>
+        
+        <h3 class="title is-4">2. Method Comparison</h3>
+        <div class="content has-text-justified">
+          <p>
+            We summarize the difference between OnlineVPO and existing methods in the following table, our approach achieves the online and video-centric preference optimization, and further exhibits superior scalability and effectiveness.
+          </p>
+        </div>
+        
+        <div class="columns is-centered">
+          <div class="column is-10">
+            <img src="./static/images/method_comparison.png" class="interpolation-image" alt="Comparison with other methods" style="width: 100%;" />
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+    
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Experiments</h2>
+        
+        <h3 class="title is-4">Quantitative Comparison</h3>
+        <div class="content has-text-justified">
+          <p>
+            We evaluate OnlineVPO on the standard <strong>VBench</strong> benchmark. 
+            Our method achieves significant improvements over baselines, particularly in video quality and temporal consistency metrics.
+          </p>
+        </div>
+        <div class="columns is-centered">
+          <div class="column is-10">
+            <img src="./static/images/quantative_results.png" class="interpolation-image" alt="Quantitative Results Table" style="width: 100%;" />
+          </div>
+        </div>
+
+        <br/>
+
+        <h3 class="title is-4">Efficiency & Scalability</h3>
+        <div class="content has-text-justified">
+          <p>
+             We further investigate the <strong>scalability</strong> of OnlineVPO. The formulation of the direct forward preference optimization avoids the heavy memory burden of storing extensive replay buffers. 
+            This allows OnlineVPO to efficiently fine-tune VDMs on <strong>higher resolutions</strong> and <strong>longer frame sequences</strong> with significantly lower GPU memory compared to ReFL baseline.
+          </p>
+        </div>
+        <div class="columns is-centered">
+          <div class="column is-8">
+            <img src="./static/images/gpu.png" class="interpolation-image" alt="Scalability Analysis" style="width: 60%; border: 1px solid #ddd; border-radius: 5px; padding: 5px;" />
+            <p class="is-size-6 has-text-centered" style="margin-top: 10px;">
+              <em>Figure 3:  GPU memory usage comparison. OnlineVPO exhibits superior scalability across increasing resolutions and frame lengths.</em>
+            </p>
+          </div>
+        </div>
+
+        <br/>
+
+        <h3 class="title is-4">Qualitative Comparison</h3>
+        <div class="content has-text-justified">
+          <p>
+            Below are visual comparisons. OnlineVPO generates videos with higher visual fidelity and smoother motion compared to the base models.
+          </p>
+        </div>
+        
+        <h4 class="title is-5" style="margin-top: 20px; margin-bottom: 20px;">Base Model: OpenSora VDM + OnlineVPO</h4>
+        <div class="columns is-multiline is-centered">
+          <div class="column is-6">
+             <div class="content">
+               <video width="100%" controls autoplay muted loop>
+                  <source src="./static/videos/opensora/a bird building a nest from twigs and leaves.mp4" type="video/mp4">
+              </video>
+              <p class="is-size-7">"A bird building a nest..."</p>
+             </div>
+          </div>
+          <div class="column is-6">
+             <div class="content">
+               <video width="100%" controls autoplay muted loop>
+                  <source src="./static/videos/opensora/A cat wearing sunglasses at a pool.mp4" type="video/mp4">
+              </video>
+              <p class="is-size-7">"A cat wearing sunglasses..."</p>
+             </div>
+          </div>
+          <div class="column is-6">
+             <div class="content">
+               <video width="100%" controls autoplay muted loop>
+                  <source src="./static/videos/opensora/A corgi is playing drum kit.mp4" type="video/mp4">
+              </video>
+              <p class="is-size-7">"A corgi playing drum kit"</p>
+             </div>
+          </div>
+          <div class="column is-6">
+             <div class="content">
+               <video width="100%" controls autoplay muted loop>
+                  <source src="./static/videos/opensora/Iron Man flying in the sky.mp4" type="video/mp4">
+              </video>
+              <p class="is-size-7">"Iron Man flying in the sky"</p>
+             </div>
+          </div>
+        </div>
+
+        <h4 class="title is-5" style="margin-top: 40px; margin-bottom: 20px;">Base Model: VideoCrafter VDM + OnlineVPO</h4>
+        <div class="columns is-multiline is-centered">
+           <div class="column is-6">
+             <div class="content">
+               <video width="100%" controls autoplay muted loop>
+                  <source src="./static/videos/videocrafter/A lightning striking atop of eiffel tower, dark clouds in the sky.mp4" type="video/mp4">
+              </video>
+               <p class="is-size-7">"Lightning striking Eiffel Tower"</p>
+             </div>
+          </div>
+           <div class="column is-6">
+             <div class="content">
+               <video width="100%" controls autoplay muted loop>
+                  <source src="./static/videos/videocrafter/A person is sweeping floor.mp4" type="video/mp4">
+              </video>
+               <p class="is-size-7">"A person sweeping floor"</p>
+             </div>
+          </div>
+           <div class="column is-6">
+             <div class="content">
+               <video width="100%" controls autoplay muted loop>
+                  <source src="./static/videos/videocrafter/Gwen Stacy reading a book.mp4" type="video/mp4">
+              </video>
+               <p class="is-size-7">"Gwen Stacy reading a book"</p>
+             </div>
+          </div>
+           <div class="column is-6">
+             <div class="content">
+               <video width="100%" controls autoplay muted loop>
+                  <source src="./static/videos/videocrafter/Motion colour drop in water, ink swirling in water, colourful ink in water, abstraction fancy dream cloud of ink..mp4" type="video/mp4">
+              </video>
+               <p class="is-size-7">"Motion colour drop in water"</p>
+             </div>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@misc{zhang2024onlinevpoalignvideodiffusion,
+      title={OnlineVPO: Align Video Diffusion Model with Online Video-Centric Preference Optimization}, 
+      author={Jiacheng Zhang and Jie Wu and Weifeng Chen and Yatai Ji and Xuefeng Xiao and Weilin Huang and Kai Han},
+      year={2024},
+      eprint={2412.15159},
+      archivePrefix={arXiv},
+      primaryClass={cs.CV},
+      url={https://arxiv.org/abs/2412.15159}, 
+}</code></pre>
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            The source code of this webpage is based on the <a
+              href="https://github.com/nerfies/nerfies.github.io">Nerfies</a> Nerfies project webpage.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
