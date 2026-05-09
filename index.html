@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MHPO: Modulated Hazard-Aware Policy Optimization for Stable Reinforcement Learning</title>
+  <meta name="description" content="MHPO introduces a Log-Fidelity Modulator and Decoupled Hazard Penalty for stable GRPO-based reinforcement learning with bounded gradient multipliers.">
+  
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
+    onload="renderMathInElement(document.body, {delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+  
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="static/css/style.css">
+</head>
+<body>
+
+<!-- ===== Hero Section ===== -->
+<header class="hero">
+  <div class="container">
+    <h1>MHPO: Modulated Hazard-Aware Policy Optimization<br>for Stable Reinforcement Learning</h1>
+    <p class="subtitle">Smooth Ratio Control with Bounded Gradient Multipliers and Asymmetric Hazard Penalties</p>
+  </div>
+</header>
+
+<!-- ===== Authors ===== -->
+<div class="authors">
+  <div class="container">
+    <div class="authors-list">
+      <span class="author">Hongjun Wang<sup>1</sup></span>
+      <span class="author">Wei Liu<sup>2</sup></span>
+      <span class="author">Weibo Gu<sup>2</sup></span>
+      <span class="author">Xing Sun<sup>2</sup></span>
+      <span class="author">Kai Han<sup>1†</sup></span>
+    </div>
+    <div class="affiliations">
+      <span class="affiliation">
+        <sup>1</sup>
+        <img src="static/images/HKU_logo.jpg" alt="HKU">
+        The University of Hong Kong
+      </span>
+      <span class="affiliation">
+        <sup>2</sup>
+        <img src="static/images/youtu_logo_cropped.png" alt="Youtu" style="height:24px;">
+        Tencent Youtu Lab
+      </span>
+    </div>
+    <p style="font-size:0.82em; color:#999; margin-top:8px;">† Corresponding author</p>
+  </div>
+</div>
+
+<!-- ===== Links ===== -->
+<div class="links-bar">
+  <a class="link-btn" href="https://arxiv.org/abs/2603.16929" target="_blank">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+    Paper (arXiv)
+  </a>
+  <a class="link-btn" href="#" target="_blank">
+    <img src="static/images/github.png" alt="GitHub">
+    Code
+  </a>
+  <a class="link-btn" href="#bibtex">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+    BibTeX
+  </a>
+</div>
+
+<!-- ===== Teaser Figure ===== -->
+<section class="teaser">
+  <div class="container">
+    <img class="teaser-img" src="static/images/first.png" alt="MHPO Overview">
+    <p class="teaser-caption">
+      <strong>Overview of MHPO.</strong> (1) Token-level importance ratios are high-variance and heavy-tailed. 
+      (2) The Log-Fidelity Modulator (LFM) produces smooth, bounded log-space modulation. 
+      (3) The Decoupled Hazard Penalty (DHP) adds asymmetric hazard-aware regulation. 
+      (4) The resulting gradient multiplier is smooth, bounded, and stable. 
+      (5) MHPO achieves the largest gains across all benchmarks. 
+      (6) Per-sample gradient shifts: MHPO concentrates updates in a stable band.
+    </p>
+  </div>
+</section>
+
+<!-- ===== Abstract ===== -->
+<section id="abstract">
+  <div class="container">
+    <h2 class="section-title">Abstract</h2>
+    <p class="abstract-text">
+      Regulating the importance ratio is central to the training stability of Group Relative Policy Optimization (GRPO) frameworks. Prevailing ratio-control methods, such as hard clipping or direction-agnostic masking, produce non-differentiable boundaries and vanishing gradient regions, and fail to preserve gradient fidelity. These methods also lack a hazard-aware mechanism that adaptively suppresses extreme deviations, which leaves the optimization process vulnerable to abrupt policy shifts. To address these limitations, we propose <strong>Modulated Hazard-aware Policy Optimization (MHPO)</strong>, a framework for stable reinforcement learning. MHPO introduces a <em>Log-Fidelity Modulator (LFM)</em> that maps unbounded importance ratios into a bounded differentiable domain, thereby preventing high-variance outlier tokens from destabilizing the loss landscape while ensuring global gradient stability. MHPO further introduces a <em>Decoupled Hazard Penalty (DHP)</em> that integrates cumulative hazard functions from survival analysis to regulate positive and negative policy shifts separately. The resulting framework achieves fine-grained regulation of asymmetric policy shifts, mitigating mode collapse from over-expansion and preventing policy erosion from catastrophic contraction within a stabilized trust region. Evaluations on mathematical reasoning benchmarks demonstrate that MHPO achieves the strongest overall performance among existing methods.
+    </p>
+  </div>
+</section>
+
+<!-- ===== Key Contributions ===== -->
+<section id="contributions">
+  <div class="container">
+    <h2 class="section-title">Key Contributions</h2>
+    <ul class="contributions-list">
+      <li>
+        <strong>Log-Fidelity Modulator (LFM):</strong> A smooth $C^\infty$ operator $\psi(r) = c\tanh(\log r / c)$ that maps unbounded importance ratios into $[-c, c]$, preserving on-policy gradient fidelity while providing globally differentiable tail attenuation — unlike hard clipping which creates dead gradient zones.
+      </li>
+      <li>
+        <strong>Decoupled Hazard Penalty (DHP):</strong> Leverages the Weibull cumulative hazard function to independently regulate positive and negative policy shifts with separate $(k, \lambda)$ parameters, enabling asymmetric trust-region control that prevents both mode collapse and catastrophic policy erosion.
+      </li>
+      <li>
+        <strong>Stability Certificate:</strong> A closed-form worst-case gradient multiplier bound $M_\psi(c)$ that guarantees second-moment stability under arbitrary behavior distributions, with complementary structural guarantees for branch-wise occupancy decay and tail asymptotics.
+      </li>
+      <li>
+        <strong>State-of-the-Art Results:</strong> On both Qwen3-4B-Base (dense) and Qwen3-30B-A3B-Base (MoE), MHPO achieves the best macro-average across five math benchmarks, outperforming GRPO, GSPO, DAPO, SAPO, CISPO, and MASPO.
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ===== Method ===== -->
+<section id="method">
+  <div class="container">
+    <h2 class="section-title">Method</h2>
+    <div class="method-content">
+
+      <!-- Objective -->
+      <div class="method-block">
+        <h3>The MHPO Objective</h3>
+        <p>
+          The MHPO objective replaces the clipped surrogate in standard GRPO with a smooth, bounded transformation:
+        </p>
+        <div style="text-align:center; margin:20px 0; font-size:1.05em;">
+          $$\mathcal{L}_{\text{MHPO}}(\theta) = -\mathbb{E}\left[\frac{1}{K}\sum_{i=1}^{K}\frac{1}{T_i}\sum_{t=1}^{T_i} \exp\!\Big(\psi(r_t^i(\theta)) - \zeta(r_t^i(\theta))\Big)\,\hat{A}_t^i\right]$$
+        </div>
+        <p>
+          where $\psi(\cdot) = c\tanh(\log(\cdot)/c)$ is the Log-Fidelity Modulator and $\zeta(\cdot) = (s(\psi(\cdot))/\lambda_+)^{k_+} + (s(-\psi(\cdot))/\lambda_-)^{k_-}$ is the Decoupled Hazard Penalty.
+        </p>
+      </div>
+
+      <!-- LFM -->
+      <div class="method-block">
+        <h3>Log-Fidelity Modulator (LFM)</h3>
+        <p>
+          The LFM projects the importance ratio into log-space and bounds its contribution via a smooth saturation function. It exhibits three key properties: (P1) High-fidelity local mapping near the on-policy anchor; (P2) Smooth gradient attenuation in the tails via $\text{sech}^2$; (P3) $C^\infty$ differentiability preventing Adam optimizer perturbations.
+        </p>
+        <div class="method-figure">
+          <img src="static/images/eim_analysis.png" alt="LFM Analysis">
+          <p class="caption"><strong>Figure 2:</strong> Characteristics of the Log-Fidelity Modulator. (a) The LFM operator with different values of $c$, showing reciprocal antisymmetry and smooth bounding. (b) The derivative demonstrating smooth gradient attenuation while preserving local fidelity.</p>
+        </div>
+      </div>
+
+      <!-- DHP -->
+      <div class="method-block">
+        <h3>Decoupled Hazard Penalty (DHP)</h3>
+        <p>
+          The DHP uses the Weibull cumulative hazard to shape the optimization landscape with direction-aware penalties. Positive shifts are regulated mildly to preserve exploration, while negative shifts receive stronger suppression to prevent irreversible policy erosion caused by branch-wise occupancy decay.
+        </p>
+        <div class="method-figure">
+          <img src="static/images/dhp_analysis.png" alt="DHP Analysis">
+          <p class="caption"><strong>Figure 3:</strong> Analysis of the Decoupled Hazard Penalty. (a) The penalty $\zeta(\psi)$ with different $(\lambda, k)$ configurations, showing asymmetric suppression. (b) The survival weight $w = \exp(-\zeta) \in (0, 1]$ — the DHP can only attenuate, never amplify.</p>
+        </div>
+      </div>
+
+      <!-- Algorithm -->
+      <div class="method-block">
+        <h3>Training Algorithm</h3>
+        <div class="algorithm-box">
+          <div class="algo-title">Algorithm 1: MHPO Training</div>
+          <div class="algo-line"><span class="keyword">Require:</span> Policy $\pi_\theta$, dataset $\mathcal{D}$, LFM bound $c$, DHP params $(k_+, \lambda_+, k_-, \lambda_-)$</div>
+          <div class="algo-line"><span class="keyword">for</span> each iteration <span class="keyword">do</span></div>
+          <div class="algo-line" style="padding-left:40px;">Sample prompts $p$; generate $K$ responses per prompt using $\pi_\theta$</div>
+          <div class="algo-line" style="padding-left:40px;">Compute group-normalized advantages $\hat{A}_t^i$</div>
+          <div class="algo-line" style="padding-left:40px;"><span class="keyword">for</span> each response $q^i$, each token $t$ <span class="keyword">do</span></div>
+          <div class="algo-line" style="padding-left:60px;">$r_t^i(\theta) \gets \pi_\theta(q_t^i \mid p, q_{&lt;t}^i) / \pi_{\theta_{\text{old}}}(q_t^i \mid p, q_{&lt;t}^i)$ <span class="comment">// importance ratio</span></div>
+          <div class="algo-line" style="padding-left:60px;">$\psi_t \gets c \cdot \tanh(\log r_t^i(\theta) / c)$ <span class="comment">// LFM</span></div>
+          <div class="algo-line" style="padding-left:60px;">$\zeta_t \gets (s(\text{sg}(\psi_t)) / \lambda_+)^{k_+} + (s(-\text{sg}(\psi_t)) / \lambda_-)^{k_-}$ <span class="comment">// DHP</span></div>
+          <div class="algo-line" style="padding-left:40px;"><span class="keyword">end for</span></div>
+          <div class="algo-line" style="padding-left:40px;">$\mathcal{L} \gets -\frac{1}{K}\sum_i \frac{1}{T_i}\sum_t \exp(\psi_t - \zeta_t) \cdot \hat{A}_t^i$; update $\theta$ via gradient descent</div>
+          <div class="algo-line"><span class="keyword">end for</span></div>
+        </div>
+      </div>
+
+      <!-- Stability -->
+      <div class="method-block">
+        <h3>Stability Certificate</h3>
+        <div class="insight-callout">
+          <div class="insight-title">Theorem (MHPO Multiplier-to-Moment Stability Certificate)</div>
+          <p>
+            The gradient multiplier $\mathcal{M}(r)$ satisfies $0 \le \mathcal{M}(r) \le M_\psi(c)$ for all $r > 0$, where 
+            $M_\psi(c) = \frac{2}{1+\sqrt{1+c^2}} \exp\!\left(\frac{c^2}{1+\sqrt{1+c^2}}\right)$.
+            Under any behavior distribution $\mu$, the normalized mini-batch gradient satisfies 
+            $\mathbb{E}_\mu[\|g(\theta)\|^2] \le \sigma_A^2 G^2 M_\psi(c)^2$ and 
+            $\Pr_\mu(\|g(\theta)\| \ge \tau) \le \sigma_A^2 G^2 M_\psi(c)^2 / \tau^2$.
+          </p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ===== Results ===== -->
+<section id="results">
+  <div class="container">
+    <h2 class="section-title">Experimental Results</h2>
+
+    <!-- Table 1: Qwen3-4B-Base -->
+    <div class="method-block" style="max-width:960px; margin:0 auto 40px;">
+      <h3>Qwen3-4B-Base (Dense Foundation Model)</h3>
+      <p style="margin-bottom:16px; color:var(--text-light);">Avg@32 (%) for the best checkpoint. All methods trained on DAPO-Math-17k-Processed with verifiable outcome-based rewards.</p>
+      <div class="results-table-wrapper">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>MATH500</th>
+              <th>HMMT25</th>
+              <th>AMC23</th>
+              <th>AIME25</th>
+              <th>AIME24</th>
+              <th>Avg.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Baseline</strong></td>
+              <td>57.2</td><td>3.8</td><td>41.3</td><td>5.7</td><td>8.8</td><td>23.4</td>
+            </tr>
+            <tr>
+              <td>GRPO</td>
+              <td>64.8</td><td>11.1</td><td>81.3</td><td>30.8</td><td>40.4</td><td>45.7</td>
+            </tr>
+            <tr>
+              <td>GSPO</td>
+              <td>66.2</td><td>12.4</td><td>83.5</td><td>34.0</td><td>39.7</td><td>47.2</td>
+            </tr>
+            <tr>
+              <td>DAPO</td>
+              <td>64.0</td><td>14.9</td><td>75.8</td><td>29.2</td><td>34.2</td><td>43.6</td>
+            </tr>
+            <tr>
+              <td>SAPO</td>
+              <td>66.4</td><td>11.5</td><td>81.4</td><td>32.9</td><td>39.6</td><td>46.4</td>
+            </tr>
+            <tr>
+              <td>CISPO</td>
+              <td>69.0</td><td>11.0</td><td>85.3</td><td>33.5</td><td>43.7</td><td>48.5</td>
+            </tr>
+            <tr>
+              <td>MASPO</td>
+              <td>67.5</td><td>12.8</td><td>82.6</td><td>34.5</td><td>40.8</td><td>47.6</td>
+            </tr>
+            <tr class="highlight-row">
+              <td><strong>MHPO (Ours)</strong></td>
+              <td class="best">70.9</td>
+              <td class="best">19.4</td>
+              <td class="best">88.2</td>
+              <td class="best">41.4</td>
+              <td class="best">44.7</td>
+              <td class="best">52.9</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Table 2: Qwen3-30B-A3B-Base -->
+    <div class="method-block" style="max-width:960px; margin:0 auto 40px;">
+      <h3>Qwen3-30B-A3B-Base (MoE Foundation Model)</h3>
+      <p style="margin-bottom:16px; color:var(--text-light);">Avg@32 (%) for the best checkpoint. Demonstrates scalability to large Mixture-of-Experts architectures.</p>
+      <div class="results-table-wrapper">
+        <table class="results-table">
+          <thead>
+            <tr>
+              <th>Method</th>
+              <th>MATH500</th>
+              <th>HMMT25</th>
+              <th>AMC23</th>
+              <th>AIME25</th>
+              <th>AIME24</th>
+              <th>Avg.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Baseline</strong></td>
+              <td>76.5</td><td>1.6</td><td>43.6</td><td>9.0</td><td>14.2</td><td>29.0</td>
+            </tr>
+            <tr>
+              <td>GRPO</td>
+              <td>82.8</td><td>35.3</td><td>78.4</td><td>28.9</td><td>31.6</td><td>51.4</td>
+            </tr>
+            <tr>
+              <td>GSPO</td>
+              <td>84.1</td><td>36.9</td><td>80.6</td><td>29.8</td><td>32.4</td><td>52.8</td>
+            </tr>
+            <tr>
+              <td>DAPO</td>
+              <td>84.5</td><td>37.2</td><td>81.0</td><td>30.2</td><td>32.8</td><td>53.1</td>
+            </tr>
+            <tr>
+              <td>SAPO</td>
+              <td>83.2</td><td>34.6</td><td>76.8</td><td>30.7</td><td>29.4</td><td>50.9</td>
+            </tr>
+            <tr>
+              <td>CISPO</td>
+              <td>85.4</td><td><strong>37.8</strong></td><td>82.3</td><td>31.6</td><td>33.1</td><td>54.0</td>
+            </tr>
+            <tr class="highlight-row">
+              <td><strong>MHPO (Ours)</strong></td>
+              <td class="best">86.6</td>
+              <td>37.3</td>
+              <td class="best">83.6</td>
+              <td class="best">32.4</td>
+              <td class="best">33.8</td>
+              <td class="best">54.7</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Stability Figure -->
+    <div class="method-block" style="max-width:900px; margin:0 auto;">
+      <h3>Training Stability Analysis</h3>
+      <p style="margin-bottom:16px; color:var(--text-light);">Per-sample effective gradient shifts: hard-clipped baselines produce many dead or saturated tokens, whereas MHPO concentrates updates in a stable band while preserving decayed tail signals.</p>
+      <div class="method-figure">
+        <img src="static/images/stability_bak.png" alt="Training Stability Comparison">
+        <p class="caption"><strong>Figure 4:</strong> Training stability comparison across methods. MHPO keeps updates in a stable band around the on-policy anchor while preserving decayed tail signals, consistent with the theoretical stability certificate.</p>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ===== Ablation ===== -->
+<section id="ablation">
+  <div class="container">
+    <h2 class="section-title">Ablation Studies</h2>
+    <div class="method-content">
+      <p style="text-align:center; color:var(--text-light); margin-bottom:24px;">Hyperparameter sensitivity sweeps on Qwen3-4B-Base (macro-average Avg@32, %).</p>
+      
+      <div class="comparison-grid" style="grid-template-columns: repeat(3, 1fr);">
+        <div class="comparison-card">
+          <h4>LFM Bound $c$</h4>
+          <p>
+            $c=0.5$: 50.9%<br>
+            $c=1.0$: 51.3%<br>
+            <strong>$c=1.5$: 52.0%</strong><br>
+            $c=2.0$: 51.7%
+          </p>
+        </div>
+        <div class="comparison-card">
+          <h4>Weibull Shape $k$</h4>
+          <p>
+            $k=1.0$: 52.0%<br>
+            $k=1.5$: 52.3%<br>
+            $k=2.5$: 52.6%<br>
+            <strong>$k=3.0$: 52.9%</strong>
+          </p>
+        </div>
+        <div class="comparison-card">
+          <h4>Weibull Scale $\lambda$</h4>
+          <p>
+            $\lambda=0.5$: 52.5%<br>
+            <strong>$\lambda=0.8$: 52.9%</strong><br>
+            $\lambda=1.0$: 52.7%<br>
+            $\lambda=2.0$: 51.9%
+          </p>
+        </div>
+      </div>
+      
+      <div class="insight-callout" style="margin-top:28px;">
+        <div class="insight-title">Key Findings</div>
+        <p>
+          The LFM alone (hazard-free) is stable but remains below the full MHPO configuration, confirming the added value of the hazard penalty. 
+          Larger $k$ improves over near-linear damping (superlinear Weibull regime), and intermediate $\lambda$ best balances exploration and tail control.
+          The default setting stays in a high-performing region across all sweeps.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== BibTeX ===== -->
+<section id="bibtex">
+  <div class="container">
+    <h2 class="section-title">BibTeX</h2>
+    <div class="bibtex-section">
+      <div class="bibtex-box">
+        <button class="copy-btn" onclick="copyBibtex()">Copy</button>
+<pre>@inproceedings{wang2026mhpo,
+  title     = {MHPO: Modulated Hazard-Aware Policy Optimization 
+               for Stable Reinforcement Learning},
+  author    = {Wang, Hongjun and Liu, Wei and Gu, Weibo 
+               and Sun, Xing and Han, Kai},
+  booktitle = {Advances in Neural Information Processing Systems (NeurIPS)},
+  year      = {2026}
+}</pre>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== Footer ===== -->
+<footer>
+  <div class="container">
+    <p>
+      MHPO Project Page &mdash; 
+      <a href="https://visual-ai.github.io" target="_blank">Visual AI Lab</a>, The University of Hong Kong &amp; Tencent Youtu Lab
+    </p>
+    <p style="margin-top:8px; font-size:0.85em;">
+      Website template inspired by <a href="https://nerfies.github.io" target="_blank">Nerfies</a> and 
+      <a href="https://visual-ai.github.io" target="_blank">Visual-AI</a>.
+    </p>
+  </div>
+</footer>
+
+<script>
+function copyBibtex() {
+  const bibtex = document.querySelector('.bibtex-box pre').textContent;
+  navigator.clipboard.writeText(bibtex).then(() => {
+    const btn = document.querySelector('.copy-btn');
+    btn.textContent = 'Copied!';
+    setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
+  });
+}
+</script>
+
+</body>
+</html>
