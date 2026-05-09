@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Depth Visualizer</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #fafafa;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        /* Controls for Model Selection */
+        .controls {
+            margin-bottom: 20px;
+            background: white;
+            padding: 10px 20px;
+            border-radius: 50px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            border: none;
+            background: transparent;
+            padding: 8px 16px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #666;
+            transition: all 0.2s;
+        }
+
+        .btn:hover { background: #f0f0f0; }
+        
+        .btn.active {
+            background: #3273dc;
+            color: white;
+            box-shadow: 0 2px 5px rgba(50, 115, 220, 0.3);
+        }
+
+        /* Grid Layout */
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            grid-template-rows: 1fr 1fr;
+            gap: 15px;
+            width: 100%;
+            height: calc(100vh - 100px);
+            max-height: 800px;
+        }
+
+        .image-card {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .card-label {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 10;
+            backdrop-filter: blur(2px);
+        }
+
+        .img-wrapper {
+            width: 100%;
+            height: 100%;
+            background: #eee;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .img-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* Loading/Error styling */
+        .img-wrapper.loading img { opacity: 0.5; }
+        .img-wrapper.error { background: #ffecec; color: #d00; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <!-- Model Selector -->
+    <div class="controls">
+        <button class="btn active" onclick="setModel('dust3r')">DUSt3R</button>
+        <button class="btn" onclick="setModel('cut3r')">CUT3R</button>
+        <button class="btn" onclick="setModel('vggt')">VGGT</button>
+    </div>
+
+    <!-- 2x2 Grid -->
+    <div class="grid-container">
+        <!-- Top Left: Original -->
+        <div class="image-card">
+            <div class="card-label">Original Image</div>
+            <div class="img-wrapper" id="wrap-rgb">
+                <img id="img-rgb" src="" alt="Original">
+            </div>
+        </div>
+
+        <!-- Top Right: Ground Truth -->
+        <div class="image-card">
+            <div class="card-label">Ground Truth</div>
+            <div class="img-wrapper" id="wrap-gt">
+                <img id="img-gt" src="" alt="GT">
+            </div>
+        </div>
+
+        <!-- Bottom Left: Base Model -->
+        <div class="image-card">
+            <div class="card-label">Base Model (<span id="lbl-base">DUSt3R</span>)</div>
+            <div class="img-wrapper" id="wrap-base">
+                <img id="img-base" src="" alt="Base">
+            </div>
+        </div>
+
+        <!-- Bottom Right: Fine-Tuned -->
+        <div class="image-card">
+            <div class="card-label">Fine-Tuned (<span id="lbl-ft">DUSt3R</span>)</div>
+            <div class="img-wrapper" id="wrap-ft">
+                <img id="img-ft" src="" alt="FT">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIG ---
+        const BASE_PATH = './resources/2d_vis/'; 
+        let currentScene = 'scene2'; // Default scene
+        let currentModel = 'dust3r';
+
+        // --- LOGIC ---
+        function init() {
+            updateImages();
+            
+            // Listen for messages from the parent window (main html)
+            window.addEventListener('message', (event) => {
+                if (event.data.type === 'setScene') {
+                    currentScene = event.data.sceneId;
+                    updateImages();
+                }
+            });
+        }
+
+        function setModel(model) {
+            currentModel = model;
+            
+            // Update Buttons
+            document.querySelectorAll('.btn').forEach(btn => {
+                if(btn.textContent.toLowerCase().includes(model)) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            // Update Labels
+            document.getElementById('lbl-base').textContent = model.toUpperCase();
+            document.getElementById('lbl-ft').textContent = model.toUpperCase();
+
+            updateImages();
+        }
+
+        function updateImages() {
+            const path = `${BASE_PATH}${currentScene}/`;
+            
+            // 1. Define URLs
+            const urlRgb = `${path}original_image.jpg`;
+            const urlGt = `${path}gt_depth.png`;
+            const urlBase = `${path}${currentModel}_base_depth.png`;
+            const urlFt = `${path}${currentModel}_ft_depth.png`;
+
+            // 2. Load Images
+            loadImage('img-rgb', 'wrap-rgb', urlRgb);
+            loadImage('img-gt', 'wrap-gt', urlGt);
+            loadImage('img-base', 'wrap-base', urlBase);
+            loadImage('img-ft', 'wrap-ft', urlFt);
+        }
+
+        function loadImage(imgId, wrapId, url) {
+            const img = document.getElementById(imgId);
+            const wrap = document.getElementById(wrapId);
+
+            wrap.classList.add('loading');
+            wrap.classList.remove('error');
+
+            img.onload = () => wrap.classList.remove('loading');
+            img.onerror = () => {
+                wrap.classList.remove('loading');
+                wrap.classList.add('error');
+                wrap.textContent = "Image not found";
+            };
+            
+            img.src = url;
+        }
+
+        init();
+    </script>
+</body>
+</html>

@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description"
+        content="Fin3R: Fine-Tuning Feed-Forward 3D Reconstruction Models via Monocular Knowledge Distillation">
+  <meta name="keywords" content="Fin3R: Fine-Tuning Feed-Forward 3D Reconstruction Models via Monocular Knowledge Distillation">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="static/css/logo.css">
+
+  <title>Fin3R</title>
+
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="./static/css/bootstrap-4.4.1.css">
+
+  <!-- Global site tag (gtag.js) - Google Analytics -->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-PYVRSFMDRL"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+
+    function gtag() {
+      dataLayer.push(arguments);
+    }
+
+    gtag('js', new Date());
+
+    gtag('config', 'G-PYVRSFMDRL');
+  </script>
+
+  
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro"
+        rel="stylesheet">
+  
+  <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  
+  
+  
+  <link rel="stylesheet" href="./static/css/bulma.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-carousel.min.css">
+  <link rel="stylesheet" href="./static/css/bulma-slider.min.css">
+  <link rel="stylesheet" href="./static/css/fontawesome.all.min.css">
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/gh/jpswalsh/academicons@1/css/academicons.min.css">
+  <link rel="stylesheet" href="./static/css/index.css">
+  <link rel="icon" href="./static/images/fin3r.png">
+
+  
+
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+  <script defer src="./static/js/fontawesome.all.min.js"></script>
+  <script src="./static/js/bulma-carousel.min.js"></script>
+  <script src="./static/js/bulma-slider.min.js"></script>
+  <script src="./static/js/index.js"></script>
+  <script src="./static/js/app.js"></script>
+  <script src="./static/js/video_comparison.js"></script>
+
+  <link rel="stylesheet" href="./static/css/dics.original.css">
+  <script src="./static/js/event_handler.js"></script>
+  <script src="./static/js/dics.original.js"></script>
+</head>
+<body>
+
+
+<section class="hero">
+  <div class="hero-body">
+    <div class="container is-max-desktop">
+      <div class="columns is-centered">
+        <div class="column has-text-centered">
+          <!-- <h1 class="title is-1 publication-title" style="margin-bottom: 0"><img src="static/images/72.png" width="80">   <strong>Fin3R</strong></h1> -->
+
+          <!-- 2. THIS IS THE MODIFIED H1 TAG FOR THE NEW LOGO -->
+          <h1 class="title is-1 publication-title logo-container" style="margin-bottom: 0">
+            <span class="blurry-part">Fin</span><span class="sharp-part">3R</span>
+          </h1>          
+          <br>
+          <h2 class="title is-3 publication-title" style="margin-top: 0; margin-bottom: 0">Fine-Tuning Feed-forward 3D Reconstruction Models via Monocular Knowledge Distillation</h2>
+          <!-- <br> -->
+          <div class="cvpr2024" style="margin-top: 10px; margin-bottom: 20px;">
+            <h2 class="title is-4">NeurIPS 2025</h2>
+          </div>
+          <div class="is-size-5 publication-authors">
+            <span class="author-block">
+              <a href="https://github.com/rwn17">Weining Ren</a><sup>1</sup></span>&nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="author-block">
+              <a href="https://whj363636.github.io/">Hongjun Wang</a><sup>1</sup></span>&nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="author-block">
+              <a href="https://tanxchong.github.io/">Xiao Tan</a><sup>2</sup>
+            </span>&nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="author-block">
+              <a href="https://www.kaihan.org/">Kai Han</a><sup>1</sup>
+            </span>&nbsp;&nbsp;&nbsp;&nbsp;
+          </div>
+          <!-- <br> -->
+          <!-- <div class="column is-full_width">
+            <h2 class="is-size-6">* equal contribution</h2>
+          </div> -->
+          <div class="is-size-5 publication-authors">
+            <span class="author-block"><sup>1</sup>HKU</span>&nbsp;&nbsp;&nbsp;&nbsp;
+            <span class="author-block"><sup>2</sup>Baidu VIS</span>&nbsp;&nbsp;&nbsp;&nbsp;
+          </div>
+
+          <div class="column has-text-centered">
+            <div class="publication-links">
+              
+              <!-- PDF Link. -->
+              <span class="link-block">
+                <a href="https://arxiv.org/abs/2511.22429"
+                   class="external-link button is-normal is-rounded is-dark">
+                  <span class="icon">
+                      <i class="fas fa-file-pdf"></i>
+                  </span>
+                  <span>Paper</span>
+                </a>
+              </span>
+          
+              <!-- Code Link. -->
+              <span class="link-block">
+                <a href="https://github.com/Visual-AI/Fin3R"
+                   class="external-link button is-normal is-rounded is-dark disabled">
+                  <span class="icon">
+                      <i class="fab fa-github"></i>
+                  </span>
+                  <span>Code</span>
+                  </a>
+              </span>  
+          </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <div style="width: 100%; height: 100%; margin: 0 auto; display: flex; justify-content: center; align-items: center;">
+        <div class="publication-video">
+          <!-- Added ?autoplay=1&mute=1 to the URL below -->
+          <iframe src="https://www.youtube.com/embed/i5zL1zXaWlM?autoplay=1&mute=1"
+                  frameborder="0" 
+                  allow="autoplay; encrypted-media" 
+                  allowfullscreen>
+          </iframe>
+        </div>
+      </div>
+      <!-- <img class="rounded" src="./media/nice-slam/teaser.png" > -->
+      <br><br><br>
+      <h2 class="subtitle has-text-centered">
+        <span class="blurry-part">Fin</span><span class="sharp-part">3R</span> finetunes the 3R family with monocular distillation on unlabelled dataset.
+    </h2>
+    </div>
+  </div>
+</section>
+
+<!-- <section class="hero teaser">
+  <div class="container is-max-desktop">
+    <div class="hero-body">
+      <div class="columns is-centered has-text-centered">
+        <div class="column is-full-width">
+      
+          <video class="video" width="80%" id="xyalias6" loop playsinline autoplay muted src="resources/yard_high_pj.mp4" onplay="resizeAndPlay(this)" style="height: 0px;"></video>
+          <canvas height=0 class="videoMerge" id="xyalias6Merge"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</section> -->
+
+<!--
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3">Reconstructions</h2>
+
+        <div class="embed-responsive embed-responsive-16by9">
+
+          <iframe style="clip-path: inset(1px 1px)" src="https://sketchfab.com/playlists/embed?collection=abee3cc1a7a7436c804f2bd3aadc2acd" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture; fullscreen" mozallowfullscreen="true" webkitallowfullscreen="true" width="100%" height="100%" frameborder="0"></iframe>
+        </div>
+        
+
+      </div>
+    </div>
+
+  </div>
+</section>
+
+-->
+
+<section class="section">
+  <div class="container is-max-desktop">
+    <!-- Abstract. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-four-fifths">
+        <h2 class="title is-3" style="margin-top: -30px">Abstract</h2>
+        <div class="content has-text-justified">
+          <p>
+            We present Fin3R, a simple, effective, and general fine-tuning method for feed-forward 3D reconstruction models. The family of feed-forward reconstruction model regresses pointmap of all input images to a reference frame coordinate system, along with other auxiliary outputs, in a single forward pass. However, we find that current models struggle with fine geometry and robustness due to (i) the scarcity of high-fidelity depth and pose supervision and (ii) the inherent geometric misalignment from multi-view pointmap regression. Fin3R jointly tackles two issues with an extra lightweight fine-tuning step. We freeze the decoder, which handles view matching, and fine-tune only the image encoder—the component dedicated to feature extraction. The encoder is enriched with fine geometric details distilled from a strong monocular teacher model on large, unlabeled datasets, using a custom, lightweight LoRA adapter. We validate our method on a wide range of models, including DUSt3R, MASt3R, CUT3R, and VGGT. The fine-tuned models consistently deliver sharper boundaries, recover complex structures, and achieve higher geometric accuracy in both single- and multi-view settings, while adding only the tiny LoRA weights, which leave test-time memory and latency virtually unchanged. 
+          </p>
+        </div>
+      </div>
+    </div>
+    <!--/ Abstract. -->
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Method. -->
+    <div class="columns is-centered has-text-centered">
+      <div class="column is-full-width">
+        <h2 class="title is-3" style="margin-top: -20px">Method</h2>
+
+        <div style="width: 60%; margin: 0 auto; display: flex; justify-content: center;">
+          <img src="./resources/pipeline.png" style="width: 100%;">
+        </div>
+        <div class="content has-text-justified">
+          <p style="margin-top: 30px">
+              Fin3R fintetunes the encoder of feed-forward reconstruction models with a custom LoRA. Purple dashed lines indicate distillation supervision on coninical view (depth or pointmap); green dashed lines denote multi-view pointmap supervision. Notice that during finetuning, the decoder is frozen and only the LoRA are updated.
+          </p>
+        </div>
+
+      </div>
+    </div>
+    <!--/ Animation. -->
+
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Results. -->
+    <div class="columns is-centered ">
+      <div class="column is-full-width">
+        <h2 class="title is-3 has-text-centered" style="margin-top: -30px">Monocular Depth Estimation</h2>
+        <img class="video" controls muted autoplay loop src="resources/monocular_depth.png"></img>
+        <div class="content has-text-justified">
+          <p>
+                Our fine-tuning method consistently improves the monocular depth estimation quality of various feed-forward 3D reconstruction models, including both two-view and multi-view, relative depth and metric depth models.
+              </p>
+        </div>
+        
+     
+    </div>
+
+  </div>
+</section>
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Results. --> 
+    <div class="columns is-centered ">
+      <div class="column is-full-width">
+        <h2 class="title is-3 has-text-centered" style="margin-top: -30px">Multi-view Performance</h2>
+
+        <!-- <h3 class="title is-4">Comparison with RobustNeRF</h3> -->
+        <div class="content has-text-justified">
+        <div style="width: 60%; margin: 0 auto; display: flex; justify-content: center;">
+          <img src="./resources/multi-view.png" style="width: 100%;">
+        </div>
+          <p>
+            Our fine-tuning method consistently improves the pose accuracy of various feed-forward 3D reconstruction models, even without pose supervision during training. This suggests that the decoder functions as an implicit feature matcher, leveraging the improved encoder features to enhance performance without requiring explicit pose labels.</p>
+        </div>
+      </div>
+    </div>
+    <!--/ Results. -->
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container is-max-desktop">
+
+    <!-- Results. --> 
+    <div class="columns is-centered ">
+      <div class="column is-full-width">
+        <h2 class="title is-3 has-text-centered" style="margin-top: -30px">Qualitative Comparison</h2>
+
+        <div class="content has-text-justified">
+          <p>
+            Our fine-tuning method improves the fine details and robustness of baseline methods.
+          </p>
+        </div>
+
+        <div style="width: 100%; height: 520px; overflow: hidden;">
+            <iframe 
+                src="./viewer.html" 
+                style="width: 100%; height: 100%; border: none;"
+                scrolling="no">
+            </iframe>
+        </div>
+        
+      </div>
+    </div>
+    <!--/ Results. -->
+  </div>
+</section>
+
+
+<!-- 2D Depth Comparison Section -->
+<div class="visualizer-container" style="width: 100%; max-width: 1000px; margin: 0 auto; font-family: sans-serif;">
+    <h3 style="text-align: center; color: #444; margin-bottom: 20px;">2D Depth Estimation Results</h3>
+    
+    <!-- The iframe housing the separate visualizer -->
+    <iframe 
+        id="depth-frame" 
+        src="./2d_visualizer.html" 
+        style="width: 100%; height: 700px; border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); background: #fafafa;"
+        title="2D Depth Visualizer">
+    </iframe>
+
+    <!-- Thumbnail Navigation -->
+    <div style="margin-top: 20px; text-align: center;">
+        <p style="font-size: 14px; color: #888; margin-bottom: 10px;">Select a Scene:</p>
+        
+        <div class="thumbnails-container" style="display: flex; justify-content: center; gap: 15px; flex-wrap: wrap;">
+            
+            <!-- Scene 2 Thumbnail (Default Active) -->
+            <!-- Note: We use the actual RGB image as the icon -->
+            <div class="thumb-btn active" onclick="changeDepthScene('scene2', this)" title="Scene 2">
+                <img src="./resources/2d_vis/scene2/original_image.jpg" alt="Scene 2">
+            </div>
+
+            <!-- Scene 3 Thumbnail -->
+            <div class="thumb-btn" onclick="changeDepthScene('scene3', this)" title="Scene 3">
+                <img src="./resources/2d_vis/scene3/original_image.jpg" alt="Scene 3">
+            </div>
+
+            <!-- Scene 5 Thumbnail -->
+            <div class="thumb-btn" onclick="changeDepthScene('scene5', this)" title="Scene 5">
+                <img src="./resources/2d_vis/scene5/original_image.jpg" alt="Scene 5">
+            </div>
+
+            <div class="thumb-btn active" onclick="changeDepthScene('scene6', this)" title="Scene 6">
+                <img src="./resources/2d_vis/scene6/original_image.jpg" alt="Scene 6">
+            </div>
+
+            <div class="thumb-btn active" onclick="changeDepthScene('scene7', this)" title="Scene 7">
+                <img src="./resources/2d_vis/scene7/original_image.jpg" alt="Scene 7">  
+            </div>
+            <div class="thumb-btn active" onclick="changeDepthScene('scene8', this)" title="Scene 8">
+                <img src="./resources/2d_vis/scene8/original_image.jpg" alt="Scene 8">  
+            </div>
+            <div class="thumb-btn active" onclick="changeDepthScene('scene9', this)" title="Scene 9">
+                <img src="./resources/2d_vis/scene9/original_image.jpg" alt="Scene 9">  
+            </div>
+            <div class="thumb-btn active" onclick="changeDepthScene('scene10', this)" title="Scene 10">
+                <img src="./resources/2d_vis/scene10/original_image.jpg" alt="Scene 10">  
+            </div>
+            <div class="thumb-btn active" onclick="changeDepthScene('scene11', this)" title="Scene 11">
+                <img src="./resources/2d_vis/scene11/original_image.jpg" alt="Scene 11">  
+            </div>
+            <div class="thumb-btn active" onclick="changeDepthScene('scene12', this)" title="Scene 12">
+                <img src="./resources/2d_vis/scene12/original_image.jpg" alt="Scene 12">  
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Styles for the circular thumbnails -->
+<style>
+    .thumb-btn {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        border: 3px solid #e0e0e0; /* Default border */
+        overflow: hidden;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .thumb-btn img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover; /* Ensures the image fills the circle perfectly */
+        display: block;
+    }
+
+    .thumb-btn:hover {
+        transform: scale(1.1);
+        border-color: #999;
+    }
+
+    /* Active State (Selected) */
+    .thumb-btn.active {
+        border-color: #3273dc; /* Blue highlight */
+        transform: scale(1.1);
+        box-shadow: 0 4px 8px rgba(50, 115, 220, 0.3);
+    }
+</style>
+
+<script>
+    function changeDepthScene(sceneId, element) {
+        // 1. Send message to the iframe
+        const frame = document.getElementById('depth-frame');
+        frame.contentWindow.postMessage({ type: 'setScene', sceneId: sceneId }, '*');
+
+        // 2. Update the visual "Active" state on the thumbnails
+        // Remove 'active' class from all buttons
+        const allBtns = document.querySelectorAll('.thumb-btn');
+        allBtns.forEach(btn => btn.classList.remove('active'));
+
+        // Add 'active' class to the clicked button
+        if (element) {
+            element.classList.add('active');
+        }
+    }
+</script>
+
+
+<section class="section" id="BibTeX">
+  <div class="container is-max-desktop content">
+    <h2 class="title">BibTeX</h2>
+    <pre><code>@inproceedings{ren2025fin3r,
+  title={Fin3R: Fine-tuning Feed-forward 3D Reconstruction Models via Monocular Knowledge Distillation},
+  author={Ren, Weining and Wang, Hongjun and Tan, Xiao and Han, Kai},
+  booktitle={The Thirty-ninth Annual Conference on Neural Information Processing Systems},
+  year={2025}
+}</code></pre>
+  </div>
+</section>
+
+<section class="section" id="Acknowledgements">
+  <div class="container is-max-desktop content">
+    <h2 class="title">Acknowledgements</h2>
+    This work is supported by Hong Kong Research Grant Council - General Research Fund (Grant No. 17213825). Weining Ren is supported by Hong Kong PhD Fellowship Scheme (HKPFS).
+  </div>
+</section>
+
+
+<footer class="footer">
+  <div class="container">
+    <div class="content has-text-centered">
+    </div>
+    <div class="columns is-centered">
+      <div class="column is-8">
+        <div class="content">
+          <p>
+            This website is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative
+            Commons Attribution-ShareAlike 4.0 International License</a>.
+            This webpage template is from <a href="https://github.com/autonomousvision/mip-splatting">mip-splatting</a>, which is built upon <a href="https://github.com/nerfies/nerfies.github.io">Nerfies</a>. 
+            We sincerely thank <a href="https://keunhong.com/">Keunhong Park</a> for developing and open-sourcing this template.
+          </p>
+        </div>
+      </div>
+          <p></p>
+        </div>
+      </div>
+</footer>
+
+</body>
+</html>

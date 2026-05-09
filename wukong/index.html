@@ -1,0 +1,1400 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="description" content="Textured 3D Morphing by Flow Model">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wukong's 72 Transformations: High-fidelity Textured 3D Morphing via Flow Models</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+
+<style>
+    /* --- 基础设置 --- */
+    body {
+      font-family: 'Noto Sans', sans-serif;
+      background-color: #ffffff;
+      color: #4a4a4a;
+      margin: 0;
+      padding: 0;
+      line-height: 1.5;
+    }
+    
+    h1, h2 { font-family: 'Google Sans', sans-serif; color: #363636; text-align: center; }
+    h1 { font-size: 2.5rem; margin-top: 40px; }
+    h2 { font-size: 1.75rem; margin-top: 30px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
+    
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+    .content-block { margin-bottom: 50px; text-align: center; }
+    
+    /* --- 按钮与链接 --- */
+    .link-buttons { display: flex; justify-content: center; gap: 15px; margin: 20px 0 40px; }
+    .btn {
+      background-color: #363636; color: white; padding: 10px 20px; border-radius: 30px;
+      text-decoration: none; font-weight: 600; display: inline-flex; align-items: center; gap: 8px;
+    }
+    .btn:hover { background-color: #555; }
+
+    /* --- 图片样式 --- */
+    img.responsive-img { max-width: 100%; height: auto; border-radius: 8px; box-shadow: none; }
+    .abstract-box { background: #f5f5f5; padding: 30px; border-radius: 10px; text-align: justify; max-width: 800px; margin: 0 auto; }
+    .caption { font-size: 0.9rem; color: #666; margin-top: 10px; }
+
+    /* --- 核心：Morphing Grid 布局 --- */
+    .morph-case { margin-bottom: 30px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .morph-grid-container { display: flex; align-items: center; gap: 10px; justify-content: center; }
+
+    /* 左右侧图片栏 */
+    .side-col { width: 80px; display: flex; flex-direction: column; align-items: center; text-align: center; font-weight: bold; font-size: 0.9rem; }
+    .side-col img { width: 100%; border-radius: 6px; border: 1px solid #ddd; margin-bottom: 5px; }
+
+    /* 中间 3D 展示栏 */
+    .center-col { flex-grow: 1; display: flex; flex-direction: column; gap: 10px; max-width: none; width: 100%; }
+    .morph-row { display: flex; align-items: center; gap: 5px; }
+    
+    /* 行标签 (竖排文字) */
+    .row-title {
+      writing-mode: vertical-rl; transform: rotate(180deg);
+      font-size: 0.75rem; font-weight: bold; color: #555;
+      width: auto; min-width: 25px; margin-right: 5px; text-align: center; white-space: nowrap;
+    }
+
+    /* --- 🌟 交互式格子 (Facade Pattern) --- */
+    .morph-cell {
+      flex: 1; /* 让格子平分宽度 */
+      aspect-ratio: 1 / 1;
+      background: #ffffff;
+      border-radius: 6px;
+      overflow: hidden;
+      position: relative;
+      cursor: pointer; /* 变成手型光标 */
+      border: 1px solid #eee;
+    }
+
+    /* 静态封面图 */
+    .morph-cell img.poster {
+      width: 100%; height: 100%; object-fit: contain; display: block;
+    }
+
+    /* 悬浮遮罩层 */
+    .morph-cell .overlay {
+      position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0, 0, 0, 0.3);
+      display: flex; justify-content: center; align-items: center;
+      opacity: 0; transition: opacity 0.2s;
+    }
+    .morph-cell:hover .overlay { opacity: 1; }
+
+    /* 按钮样式 */
+    .btn-3d {
+      background: white; color: #333; padding: 6px 12px; border-radius: 20px;
+      font-size: 12px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      transform: translateY(10px); transition: transform 0.2s;
+    }
+    .morph-cell:hover .btn-3d { transform: translateY(0); }
+
+    /* 激活后的 Model Viewer 样式 */
+    model-viewer { width: 100%; height: 100%; --poster-color: transparent; }
+
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    
+    <div class="content-block">
+      <h1>Wukong's 72 Transformations: High-fidelity Textured 3D Morphing via Flow Models</h1>
+      
+      <div class="authors">
+        <span class="author-block">Minghao Yin<sup>1</sup>,</span>
+        <span class="author-block">Yukang Cao<sup>2</sup>,</span>
+        <span class="author-block">Kai Han<sup>1</sup></span>
+      </div>
+      
+      <div class="affiliations">
+        <span><sup>1</sup>The University of Hong Kong, <sup>2</sup>Nanyang Technological University</span>
+      </div>
+
+      <div class="link-buttons">
+        <a href="./static/paper.pdf" class="btn">
+          <span class="icon"><i class="fas fa-file-pdf"></i></span>
+          <span>Paper</span>
+        </a>
+        <a href="./static/video_supp.mp4" class="btn">
+          <span class="icon"><i class="ai ai-arxiv"></i></span>
+          <span>Supplementary</span>
+        </a>
+        <a href="https://arxiv.org/abs/2511.22425" class="btn">
+          <span class="icon"><i class="ai ai-arxiv"></i></span>
+          <span>arXiv</span>
+        </a>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <img src="./static/images/teaser.png" class="responsive-img" alt="Teaser Figure">
+      <p class="caption">
+        <strong>Figure 1. High-fidelity textured 3D morphing of Wukong.</strong> Taking an image of Wukong (bottom left) as the source and an image of another character (bottom right) as the target, we demonstrate two 
+        types of textured 3D morphing by our method: (i) Purple arrows indicate texture-controlled morphing,
+        where the geometric structure changes while preserving detailed textures from the source; (ii) Green
+        arrows indicate textured 3D morphing guided by the target prompt.
+      </p>
+    </div>
+
+    <div class="content-block">
+      <h2>Abstract</h2>
+      <div class="abstract-box">
+        <p>
+        We present WUKONG, a novel training-free framework for high-fidelity textured
+        3D morphing that takes a pair of source and target prompts (image or text) as
+        input. Unlike conventional methods—which rely on manual correspondence matching and deformation trajectory estimation (limiting generalization and requiring
+        costly preprocessing)—WUKONG leverages the generative prior of flow-based
+        transformers to produce high-fidelity 3D transitions with rich texture details. To
+        ensure smooth shape transitions, we exploit the inherent continuity of flow-based
+        generative processes and formulate morphing as an optimal transport barycenter problem. We further introduce a sequential initialization strategy to prevent
+        abrupt geometric distortions and preserve identity coherence. For faithful texture preservation, we propose a similarity-guided semantic consistency mechanism that selectively retains high-frequency details and enables precise control
+        over blending dynamics. This avoids common artifacts like oversmoothing while
+        maintaining semantic fidelity. Extensive quantitative and qualitative evaluations
+        demonstrate that WUKONG significantly outperforms state-of-the-art methods,
+        achieving superior results across diverse geometry and texture variations.
+        </p>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <h2>Video Trailer</h2>
+      <div style="max-width: 800px; margin: 0 auto;">
+        <video controls playsinline width="100%" style="border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+          <source src="./static/trailer.mp4" type="video/mp4">
+          Your browser does not support the video tag.
+        </video>
+      </div>
+    </div>
+
+    <div class="content-block">
+      <h2>Method Framework</h2>
+      <img src="./static/images/framework.png" class="responsive-img" alt="Method Framework">
+      <p class="caption">
+        <strong>Figure 2. Architecture.</strong> Given a source and a target (image or text), we extract features
+        using pretrained encoders and treat the condition tokens as empirical distributions. We compute their
+        Wasserstein barycenter to obtain interpolated condition tokens. These
+        are fed into a shared geometry flow model and texture flow model to generate 3D outputs
+        at different α values, producing textured 3D morphs. The top-right shows our texture-controlled
+        morphing branch, and the bottom-right illustrates the recursive initialization.
+      </p>
+    </div>
+
+<div class="content-block">
+      <h2>Interactive Results</h2>
+      <p><strong>Click on any image below</strong> to load the interactive 3D model.</p>
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/wukong.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m1_0.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m1_1.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m1_2.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m1_3.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m1_4.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m1_5.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m1_6.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m2_0.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m2_1.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m2_2.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m2_3.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m2_4.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m2_5.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragon/m2_6.glb')">
+                <img class="poster" src="./static/models/wukong_dragon/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/dragon.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 1. Morphing from Wukong to a dragon.</p>
+      </div>
+
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/wukong.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m1_0.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m1_1.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m1_2.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m1_3.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m1_4.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m1_5.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m1_6.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m2_0.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m2_1.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m2_2.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m2_3.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m2_4.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m2_5.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_furry/m2_6.glb')">
+                <img class="poster" src="./static/models/wukong_furry/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/furry.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 2. Morphing from Wukong to a fox.</p>
+      </div>
+
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/wukong.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m1_0.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m1_1.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m1_2.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m1_3.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m1_4.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m1_5.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m1_6.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m2_0.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m2_1.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m2_2.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m2_3.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m2_4.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m2_5.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dragonborn/m2_6.glb')">
+                <img class="poster" src="./static/models/wukong_dragonborn/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/dragonborn.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 3. Morphing from Wukong to dragonborn.</p>
+      </div>
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/wukong.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m1_0.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m1_1.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m1_2.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m1_3.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m1_4.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m1_5.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m1_6.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m2_0.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m2_1.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m2_2.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m2_3.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m2_4.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m2_5.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/wukong_dinosaur/m2_6.glb')">
+                <img class="poster" src="./static/models/wukong_dinosaur/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/dinosaur.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 4. Morphing from Wukong to a dinosaur</p>
+      </div>
+      
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/tele.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m1_0.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m1_1.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m1_2.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m1_3.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m1_4.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m1_5.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m1_6.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m2_0.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m2_1.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m2_2.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m2_3.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m2_4.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m2_5.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/tele_dragon/m2_6.glb')">
+                <img class="poster" src="./static/models/tele_dragon/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/dragon.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 5. Morphing from a television to a dragon.</p>
+      </div>
+
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/magic.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m1_0.glb')">
+                <img class="poster" src="./static/models/magic_castle/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m1_1.glb')">
+                <img class="poster" src="./static/models/magic_castle/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m1_2.glb')">
+                <img class="poster" src="./static/models/magic_castle/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m1_3.glb')">
+                <img class="poster" src="./static/models/magic_castle/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m1_4.glb')">
+                <img class="poster" src="./static/models/magic_castle/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m1_5.glb')">
+                <img class="poster" src="./static/models/magic_castle/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m1_6.glb')">
+                <img class="poster" src="./static/models/magic_castle/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m2_0.glb')">
+                <img class="poster" src="./static/models/magic_castle/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m2_1.glb')">
+                <img class="poster" src="./static/models/magic_castle/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m2_2.glb')">
+                <img class="poster" src="./static/models/magic_castle/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m2_3.glb')">
+                <img class="poster" src="./static/models/magic_castle/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m2_4.glb')">
+                <img class="poster" src="./static/models/magic_castle/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m2_5.glb')">
+                <img class="poster" src="./static/models/magic_castle/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/magic_castle/m2_6.glb')">
+                <img class="poster" src="./static/models/magic_castle/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/castle.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 6. Morphing from a magic book to a castle.</p>
+      </div>
+
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/mailbox.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m1_0.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m1_1.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m1_2.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m1_3.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m1_4.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m1_5.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m1_6.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m2_0.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m2_1.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m2_2.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m2_3.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m2_4.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m2_5.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/mailbox_mech/m2_6.glb')">
+                <img class="poster" src="./static/models/mailbox_mech/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/mech.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 7. Morphing from a mail box to a robot.</p>
+      </div>
+
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/cottage.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m1_0.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m1_1.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m1_2.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m1_3.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m1_4.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m1_5.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m1_6.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m2_0.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m2_1.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m2_2.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m2_3.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m2_4.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m2_5.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/cottage_elephant/m2_6.glb')">
+                <img class="poster" src="./static/models/cottage_elephant/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/elephant.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 8. Morphing from a cottage to an elephant.</p>
+      </div>
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/bulldozer.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m1_0.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m1_1.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m1_2.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m1_3.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m1_4.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m1_5.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m1_6.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m2_0.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m2_1.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m2_2.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m2_3.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m2_4.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m2_5.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/bulldozer_rock/m2_6.glb')">
+                <img class="poster" src="./static/models/bulldozer_rock/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/rock.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 9. Morphing from a bulldozer to a stoneman.</p>
+      </div>
+
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/paper.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m1_0.glb')">
+                <img class="poster" src="./static/models/paper_robot/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m1_1.glb')">
+                <img class="poster" src="./static/models/paper_robot/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m1_2.glb')">
+                <img class="poster" src="./static/models/paper_robot/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m1_3.glb')">
+                <img class="poster" src="./static/models/paper_robot/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m1_4.glb')">
+                <img class="poster" src="./static/models/paper_robot/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m1_5.glb')">
+                <img class="poster" src="./static/models/paper_robot/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m1_6.glb')">
+                <img class="poster" src="./static/models/paper_robot/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m2_0.glb')">
+                <img class="poster" src="./static/models/paper_robot/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m2_1.glb')">
+                <img class="poster" src="./static/models/paper_robot/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m2_2.glb')">
+                <img class="poster" src="./static/models/paper_robot/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m2_3.glb')">
+                <img class="poster" src="./static/models/paper_robot/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m2_4.glb')">
+                <img class="poster" src="./static/models/paper_robot/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m2_5.glb')">
+                <img class="poster" src="./static/models/paper_robot/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/paper_robot/m2_6.glb')">
+                <img class="poster" src="./static/models/paper_robot/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/robot.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 10. Morphing from a printing machine to a robot</p>
+      </div>
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/building.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m1_0.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m1_1.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m1_2.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m1_3.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m1_4.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m1_5.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m1_6.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m2_0.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m2_1.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m2_2.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m2_3.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m2_4.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m2_5.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/building_dinosaur/m2_6.glb')">
+                <img class="poster" src="./static/models/building_dinosaur/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/dinosaur.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 11. Morphing from a building to a dinosaur</p>
+      </div>
+
+
+      <div class="morph-case">
+        <div class="morph-grid-container">
+          
+          <div class="side-col">
+            <img src="./static/images/castle.png" alt="Source">
+            <div>Source</div>
+          </div>
+
+          <div class="center-col">
+            
+            <div class="morph-row">
+              <div class="row-title">Blend<br>Target</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m1_0.glb')">
+                <img class="poster" src="./static/models/castle_crab/m1_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m1_1.glb')">
+                <img class="poster" src="./static/models/castle_crab/m1_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m1_2.glb')">
+                <img class="poster" src="./static/models/castle_crab/m1_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+               <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m1_3.glb')">
+                <img class="poster" src="./static/models/castle_crab/m1_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m1_4.glb')">
+                <img class="poster" src="./static/models/castle_crab/m1_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m1_5.glb')">
+                <img class="poster" src="./static/models/castle_crab/m1_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m1_6.glb')">
+                <img class="poster" src="./static/models/castle_crab/m1_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+
+            <div class="morph-row">
+              <div class="row-title">Preserve<br>Source</div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m2_0.glb')">
+                <img class="poster" src="./static/models/castle_crab/m2_0.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m2_1.glb')">
+                <img class="poster" src="./static/models/castle_crab/m2_1.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m2_2.glb')">
+                <img class="poster" src="./static/models/castle_crab/m2_2.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m2_3.glb')">
+                <img class="poster" src="./static/models/castle_crab/m2_3.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m2_4.glb')">
+                <img class="poster" src="./static/models/castle_crab/m2_4.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+              <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m2_5.glb')">
+                <img class="poster" src="./static/models/castle_crab/m2_5.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+                <div class="morph-cell" onclick="activate3D(this, './static/models/castle_crab/m2_6.glb')">
+                <img class="poster" src="./static/models/castle_crab/m2_6.png">
+                <div class="overlay"><div class="btn-3d"><i class="fas fa-cube"></i> View 3D</div></div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="side-col">
+            <img src="./static/images/crab.png" alt="Target">
+            <div>Target</div>
+          </div>
+
+        </div>
+        <p class="caption">Case 12. Morphing from a castle to a crab.</p>
+      </div>
+      
+      </div>
+
+    <div class="content-block">
+      <h2>Citation</h2>
+      <pre style="background: #f5f5f5; padding: 20px; border-radius: 10px; text-align: left; font-family: monospace; font-size: 0.9rem; overflow-x: auto;">
+@inproceedings{yinwukong,
+  title={Wukong's 72 Transformations: High-fidelity Textured 3D Morphing via Flow Models},
+  author={Yin, Minghao and Cao, Yukang and Han, Kai},
+  booktitle={The Thirty-ninth Annual Conference on Neural Information Processing Systems}
+}
+      </pre>
+    </div>
+
+</div> <script>
+    /**
+     * activate3D
+     * 作用：点击图片时，将 div 内部的图片替换为 model-viewer 组件
+     * @param {HTMLElement} element - 被点击的 div 元素 (this)
+     * @param {String} glbUrl - 对应的 GLB 文件路径
+     */
+    function activate3D(element, glbUrl) {
+      // 1. 构建 Model Viewer 的 HTML 字符串
+      // 这里配置了：高曝光(3.0)，无阴影(0)，自动旋转，相机自适应(auto)
+      const viewerHtml = `
+        <model-viewer 
+          src="${glbUrl}" 
+          exposure="3.0" 
+          shadow-intensity="0" 
+          camera-orbit="0deg 75deg auto" 
+          camera-controls 
+          auto-rotate
+          touch-action="pan-y">
+        </model-viewer>
+      `;
+
+      // 2. 替换内容
+      element.innerHTML = viewerHtml;
+
+      // 3. 移除点击事件，避免重复加载
+      element.onclick = null;
+      element.style.cursor = "default";
+    }
+  </script>
+
+
+  </div>
+
+</body>
+</html>

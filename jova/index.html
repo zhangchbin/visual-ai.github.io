@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JoVA: Unified Multimodal Learning for Joint Video-Audio Generation</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            /* --- 配色方案：Obsidian Void --- */
+            --bg-body: #050507;
+            --bg-gradient: radial-gradient(circle at 50% -20%, #1e1b2e 0%, #050507 60%);
+            
+            --bg-card: rgba(255, 255, 255, 0.02);
+            --border-card: rgba(139, 92, 246, 0.15);
+            
+            --accent-primary: #8b5cf6;
+            --accent-secondary: #f59e0b;
+            --accent-glow: rgba(139, 92, 246, 0.3);
+            
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --text-highlight: #e2e8f0;
+            
+            --max-width: 1400px;
+            --font-main: 'Outfit', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        /* Reset */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: var(--font-main);
+            background-color: var(--bg-body);
+            background-image: var(--bg-gradient);
+            color: var(--text-main);
+            line-height: 1.6;
+            min-height: 100vh;
+            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        a { text-decoration: none; color: inherit; transition: 0.3s; }
+
+        .container {
+            max-width: var(--max-width);
+            margin: 0 auto;
+            padding: 0 30px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .section { padding: 60px 0; }
+
+        /* --- Typography (修改部分：适配彩色标题) --- */
+        h1.title {
+            font-size: 5rem;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 15px;
+            letter-spacing: -0.02em;
+            
+            /* 修改：去掉了原先的全局渐变，改为白色，以便局部上色 */
+            color: #ffffff; 
+            /* background: linear-gradient(135deg, #ffffff 0%, #a78bfa 100%); */
+            /* -webkit-background-clip: text; */
+            /* -webkit-text-fill-color: transparent; */
+            
+            text-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            position: relative;
+            display: inline-block;
+            line-height: 1.1; /* 优化多行行高 */
+        }
+
+        /* 新增：JoVA 专用颜色类 (微调亮度以适应黑底) */
+        .c-green { color: #00C4A3; }
+        .c-blue  { color: #3399FF; }
+        .c-purple{ color: #9B51E0; }
+        
+        .title-wrapper { text-align: center; margin-bottom: 15px; }
+
+        h2.section-title {
+            font-size: 2.2rem;
+            font-weight: 600;
+            text-align: center;
+            margin-bottom: 50px;
+            color: var(--text-highlight);
+            position: relative;
+        }
+        
+        h2.section-title::after {
+            content: '';
+            display: block;
+            width: 40px;
+            height: 4px;
+            background: var(--accent-primary);
+            margin: 15px auto 0;
+            border-radius: 2px;
+            box-shadow: 0 0 10px var(--accent-primary);
+        }
+
+        /* --- Header --- */
+        header { 
+            padding: 180px 0 120px; 
+            position: relative;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            /* 这里的图片路径如果是本地的，请确保 assets/bg4.png 存在，否则可以暂时用渐变代替 */
+            background-image: url('assets/bg4.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 0.8; 
+            z-index: 0;
+            filter: grayscale(30%);
+        }
+        
+        header::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                linear-gradient(to bottom, rgba(5,5,7,0.2) 0%, rgba(5,5,7,1) 100%),
+                radial-gradient(circle at center, transparent 20%, rgba(0,0,0,0.8) 100%);
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        header .container {
+            position: relative;
+            z-index: 10; 
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 1.6rem;
+            color: #e2e8f0;
+            margin-bottom: 30px;
+            font-weight: 300;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.8);
+        }
+
+        .authors {
+            text-align: center;
+            color: #fff;
+            font-size: 1.15rem;
+            margin-bottom: 10px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+        }
+        .authors span { margin: 0 12px; display: inline-block; }
+        
+        .affiliations {
+            text-align: center;
+            color: #cbd5e1;
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.9);
+        }
+        
+        .notes {
+            text-align: center;
+            font-size: 0.85rem;
+            color: #94a3b8;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        .btn {
+            background: rgba(255,255,255,0.05);
+            color: #fff;
+            padding: 12px 30px;
+            border-radius: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+            font-weight: 500;
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover {
+            background: var(--accent-primary);
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 25px var(--accent-glow);
+            transform: translateY(-2px);
+        }
+
+        /* --- Abstract --- */
+        .abstract-box {
+            background: linear-gradient(180deg, rgba(30, 27, 46, 0.6) 0%, rgba(5, 5, 7, 0.6) 100%);
+            border: 1px solid var(--border-card);
+            border-radius: 24px;
+            padding: 50px;
+            max-width: 960px;
+            margin: 0 auto;
+            box-shadow: 0 20px 50px -10px rgba(0,0,0,0.7);
+            backdrop-filter: blur(12px);
+        }
+        .abstract-text {
+            color: #cbd5e1;
+            text-align: justify;
+            font-size: 1.1rem;
+            line-height: 1.8;
+        }
+
+        /* --- Visual Elements --- */
+        .visual-container {
+            width: 100%;
+            max-width: 1100px;
+            margin: 0 auto;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid rgba(255,255,255,0.08);
+            box-shadow: 0 0 60px rgba(139, 92, 246, 0.1);
+            position: relative;
+            background: #000;
+        }
+        
+        .caption {
+            text-align: center;
+            margin-top: 20px;
+            color: var(--text-muted);
+            font-size: 0.95rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        /* --- Performance Table --- */
+        .table-container {
+            overflow-x: auto;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border-card);
+            padding: 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            color: var(--text-main);
+            font-size: 0.95rem;
+            min-width: 700px;
+        }
+        th, td {
+            padding: 15px 15px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+        }
+        th {
+            font-weight: 600;
+            color: var(--accent-primary);
+            background: rgba(255,255,255,0.02);
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 0.05em;
+        }
+        tr:last-child td { border-bottom: none; }
+        .highlight-row {
+            background: rgba(139, 92, 246, 0.1);
+        }
+        .best-score {
+            font-weight: 700;
+            color: var(--accent-secondary);
+        }
+        .group-header {
+            text-align: left;
+            font-style: italic;
+            color: var(--text-muted);
+            background: rgba(255,255,255,0.03);
+            padding-left: 20px;
+            font-weight: 500;
+        }
+
+        /* ===================== Generated Examples (保留所有原始 CSS) ===================== */
+        .gallery-container{
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .gallery-row{
+            display: grid;
+            gap: 20px;
+            width: 100%;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            justify-items: center;
+            align-items: start;
+        }
+
+        .video-card{
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            background: #000;
+            border: 1px solid rgba(255,255,255,0.1);
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+        .video-card.landscape{
+            width: min(100%, 340px);
+            aspect-ratio: 16/9;
+            max-height: 260px;
+        }
+
+        .video-card.portrait{
+            width: min(100%, 220px);
+            aspect-ratio: 9/16;
+            max-height: 360px;
+        }
+
+        .video-element{
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            display: block;
+            background: #000;
+        }
+
+        .play-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3rem;
+            color: rgba(255, 255, 255, 0.8);
+            z-index: 10;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .prompt-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(5, 5, 7, 0.92);
+            backdrop-filter: blur(10px);
+            padding: 15px;
+            border-top: 1px solid rgba(139, 92, 246, 0.3);
+            transform: translateY(100%);
+            opacity: 0;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+            max-height: 70%;
+            overflow: auto;
+        }
+
+        .video-card:hover .prompt-overlay {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .video-card.playing .play-icon,
+        .video-card.playing .prompt-overlay {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .prompt-label {
+            font-family: var(--font-mono);
+            font-size: 0.7rem;
+            color: var(--accent-primary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+        .prompt-text {
+            font-size: 0.85rem;
+            color: #e2e8f0;
+            line-height: 1.45;
+            white-space: pre-wrap;
+            word-break: break-word;
+            overflow-wrap: anywhere;
+        }
+
+        .prompt-overlay::-webkit-scrollbar { width: 10px; }
+        .prompt-overlay::-webkit-scrollbar-thumb {
+            background: rgba(139, 92, 246, 0.35);
+            border-radius: 999px;
+            border: 2px solid rgba(5,5,7,0.92);
+        }
+        .prompt-overlay::-webkit-scrollbar-track { background: transparent; }
+
+        /* Responsive */
+        @media (max-width: 1200px) {
+            .gallery-row.landscape { grid-template-columns: repeat(3, 1fr); }
+            .gallery-row.portrait  { grid-template-columns: repeat(3, 1fr); }
+            .video-card.landscape { max-height: 240px; }
+            .video-card.portrait  { max-height: 320px; }
+        }
+        @media (max-width: 900px) {
+            .gallery-row.landscape { grid-template-columns: repeat(2, 1fr); }
+            .gallery-row.portrait  { grid-template-columns: repeat(2, 1fr); }
+            .video-card.landscape { max-height: 220px; }
+            .video-card.portrait  { max-height: 300px; }
+            h1.title { font-size: 3rem; }
+        }
+        @media (max-width: 600px) {
+            .gallery-row.landscape { grid-template-columns: 1fr; }
+            .gallery-row.portrait  { grid-template-columns: 1fr; }
+            .video-card.portrait  { max-height: 520px; }
+            .abstract-box { padding: 30px; }
+            .authors span { display: block; margin: 5px 0; }
+            .bibtex-block { font-size: 0.8rem; padding: 20px; }
+            h1.title { font-size: 2.2rem; }
+        }
+
+        /* --- Citation Styles --- */
+        .bibtex-block {
+            background: #0f0f13;
+            border: 1px solid var(--border-card);
+            border-radius: 12px;
+            padding: 25px;
+            position: relative;
+            font-family: var(--font-mono);
+            font-size: 0.9rem;
+            color: #a78bfa;
+            overflow-x: auto;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .bibtex-content {
+            white-space: pre;
+            line-height: 1.5;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(255,255,255,0.05);
+            color: var(--text-muted);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 6px;
+            padding: 6px 12px;
+            font-size: 0.8rem;
+            cursor: pointer;
+            font-family: var(--font-main);
+            transition: all 0.2s;
+        }
+
+        .copy-btn:hover {
+            background: var(--accent-primary);
+            color: #fff;
+            border-color: var(--accent-primary);
+        }
+
+        .copy-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* --- Footer --- */
+        footer {
+            background: #000;
+            padding: 40px 0;
+            text-align: center;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255,255,255,0.05);
+            margin-top: auto;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="container">
+            <div class="title-wrapper">
+            <!-- 这里的 font-size 和原来的 h1.title 保持一致，只改颜色 -->
+            <h1 class="title">
+                <span class="c-green">Jo</span><span class="c-blue">V</span><span class="c-purple">A</span>
+            </h1>
+        </div>
+
+        <!-- 副标题也对应上色 (可选，如果只想标题变色，副标题可以不加 span) -->
+        <p class="subtitle">
+            Unified Multimodal Learning for 
+            <span class="c-green">Jo</span>int 
+            <span class="c-blue">V</span>ideo-<span class="c-purple">A</span>udio 
+            Generation
+        </p>
+                    
+            <div class="authors">
+                <span>Xiaohu Huang<sup>1,*</sup></span>
+                <span>Hao Zhou<sup>2,*</sup></span>
+                <span>Qiangpeng Yang<sup>2</sup></span>
+                <span>Shilei Wen<sup>2</sup></span>
+                <span>Kai Han<sup>1,✉</sup></span>
+            </div>
+            
+            <div class="affiliations">
+                <sup>1</sup>The University of Hong Kong &nbsp;&nbsp; <sup>2</sup>ByteDance
+            </div>
+
+            <div class="notes">
+                * Equal Contribution &nbsp;&nbsp; ✉ Corresponding Author
+            </div>
+
+            <div class="btn-group">
+                <a href="https://arxiv.org/abs/2512.13677" class="btn"><i class="fas fa-file-pdf"></i> Paper</a>
+                <a href="https://github.com/Visual-AI/JoVA" class="btn"><i class="fab fa-github"></i> Github</a>
+                <a href="#" class="btn"><i class="fas fa-database"></i> UniAvatar-Bench</a>
+            </div>
+        </div>
+    </header>
+
+    <!-- Abstract -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Abstract</h2>
+            <div class="abstract-box">
+                <p class="abstract-text">
+                    We present <strong>JoVA</strong>, a unified framework for joint video-audio generation. Unlike previous methods that rely on explicit fusion modules or lack speech capability, JoVA employs <strong>joint self-attention</strong> across video and audio tokens, enabling direct cross-modal interaction within a streamlined architecture. To address the challenge of lip-speech synchronization, we introduce a simple yet effective <strong>mouth-area specific loss</strong> based on facial keypoint detection. Extensive experiments demonstrate that JoVA outperforms state-of-the-art unified and audio-driven methods in lip-sync accuracy, speech quality, and overall generation fidelity.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Demo Video -->
+    <section class="section" style="background: rgba(255,255,255,0.01);">
+        <div class="container">
+            <h2 class="section-title">Demo Video</h2>
+            
+            <div class="visual-container" style="max-width: 700px; margin: 0 auto; aspect-ratio: 16/9; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+                
+                <video controls playsinline style="width: 100%; height: 100%; object-fit: cover;">
+                    <source src="assets/jova_demo.mov" type="video/mp4">
+                    您的浏览器不支持 video 标签。
+                </video>
+
+            </div>
+            <p class="caption">
+                Figure 1: Demonstration of JoVA generating synchronized video and audio from text prompts.
+            </p>
+        </div>
+    </section>
+
+    <!-- Method -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Method</h2>
+            
+            <div class="visual-container" style="aspect-ratio: auto; background: transparent; box-shadow: none;">
+                
+                <img src="assets/method.jpg" 
+                     alt="Method Framework Diagram" 
+                     style="width: 100%; max-width: 800px; height: auto; border-radius: 8px; display: block; margin: 0 auto; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+            
+            </div>
+
+            <p class="abstract-text" style="margin-top: 30px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                JoVA processes video and audio tokens directly within a single transformer layer using <strong>Joint Self-Attention</strong>, eliminating redundant alignment modules. To ensure high-fidelity synchronization, we employ a mouth-area specific loss that enhances supervision on the critical mouth region during training without compromising architectural simplicity.
+            </p>
+        </div>
+    </section>
+
+    <!-- Construction of Data -->
+    <section class="section" style="background: rgba(255,255,255,0.01);">
+        <div class="container">
+            <h2 class="section-title">Construction of Data</h2>
+            
+            <div class="visual-container" style="aspect-ratio: auto; background: transparent; box-shadow: none;">
+                <img src="assets/dataset.jpg" 
+                     alt="Data Construction Pipeline" 
+                     style="width: 100%; max-width: 1000px; height: auto; border-radius: 8px; display: block; margin: 0 auto; box-shadow: 0 5px 20px rgba(0,0,0,0.1);">
+            </div>
+
+            <p class="caption">
+                Figure 2: Overview of the data construction pipeline, including Text-to-Audio, Text-to-Video-Audio, and Text-to-Avatar-Speech subsets.
+            </p>
+        </div>
+    </section>
+
+    <!-- Performance Comparison -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Performance Comparison</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th style="text-align: left;">Method</th>
+                            <th>Type</th>
+                            <th>Lip-Sync (LSE-C) <i class="fas fa-arrow-up"></i></th>
+                            <th>TTS (WER) <i class="fas fa-arrow-down"></i></th>
+                            <th>Audio Quality (PQ) <i class="fas fa-arrow-up"></i></th>
+                            <th>Video Motion (MS) <i class="fas fa-arrow-up"></i></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Audio-Driven Group -->
+                        <tr>
+                            <td colspan="6" class="group-header">Audio-Driven Generation</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">FantasyTalking</td>
+                            <td>Audio-Driven</td>
+                            <td>3.10</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>0.22</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">Wan-S2V</td>
+                            <td>Audio-Driven</td>
+                            <td>6.43</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>0.82</td>
+                        </tr>
+                        
+                        <!-- Joint Generation Group -->
+                        <tr>
+                            <td colspan="6" class="group-header">Joint Video-Audio Generation</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">Universe-1</td>
+                            <td>Joint Gen</td>
+                            <td>1.62</td>
+                            <td>0.37</td>
+                            <td>4.39</td>
+                            <td>0.43</td>
+                        </tr>
+                        <tr>
+                            <td style="text-align: left;">OVI</td>
+                            <td>Joint Gen</td>
+                            <td>6.41</td>
+                            <td>0.23</td>
+                            <td>5.77</td>
+                            <td>0.94</td>
+                        </tr>
+                        <tr class="highlight-row">
+                            <td style="text-align: left;"><strong>JoVA (Ours)</strong></td>
+                            <td><strong>Joint Gen</strong></td>
+                            <td class="best-score">6.64</td>
+                            <td class="best-score">0.18</td>
+                            <td class="best-score">6.45</td>
+                            <td class="best-score">0.98</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <p class="caption">
+                Table 1: Quantitative comparison on standard benchmarks. JoVA achieves state-of-the-art performance in lip-sync and audio quality.
+            </p>
+        </div>
+    </section>
+
+    <!-- Generated Examples -->
+    <section class="section">
+        <div class="container">
+            <h2 class="section-title">Generated Examples</h2>
+
+            <p class="caption" style="margin-top:-6px;margin-bottom:14px;font-size:1.7rem;line-height:1.5;font-weight:500;color:rgba(255,255,255,.72);">
+                Keep update: these examples will be continuously updated.
+            </p>
+
+            <!-- 单容器：内部按行注入（每行同方向） -->
+            <div class="gallery-container" id="gallery-container">
+            <!-- Rows injected via JS -->
+            </div>
+
+            <p class="caption">
+            Qualitative results showing diversity in style, geometry, and audio-visual synchronization.
+            <br><span style="font-size: 0.9em; color: #888;">(Click on the cards to play/pause videos; hover to view full prompt)</span>
+            </p>
+        </div>
+    </section>
+
+    <!-- Citation Section -->
+    <section class="section" id="citation">
+        <div class="container">
+            <h2 class="section-title">Citation</h2>
+            <p class="caption" style="margin-bottom: 20px;">If you find our work useful for your research, please consider citing:</p>
+            
+            <div class="bibtex-block">
+                <button class="copy-btn" onclick="copyBibtex(this)">Copy</button>
+                <div class="bibtex-content">@article{huang2025JoVA,
+  title={JoVA: Unified Multimodal Learning for Joint Video-Audio Generation},
+  author={Huang, Xiaohu and Zhou, Hao and Yang, Qiangpeng and Wen, Shilei and Han, Kai},
+  journal={arXiv preprint},
+  year={2025}
+}</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="container">
+            <p>Copyright © 2025 JoVA Project Team. All rights reserved.</p>
+            <p style="font-size: 0.8rem; margin-top: 10px; opacity: 0.6;">The website template is adapted from Nerfies.</p>
+        </div>
+    </footer>
+
+    <script>
+        // --- Gallery Generation Logic (Row-packed, single container) ---
+        const galleryContainer = document.getElementById('gallery-container');
+
+        const exampleData = [
+            {
+                text: "<Transcript>: The album is currently available for pre-order and those who do so will find the tracklist. <Audio Caption>: A female voice, speaking in a neutral tone and moderate pace, announces the album's pre-order availability and mentions the track list, with no background sounds.. <Video Caption>: A woman with long blonde hair is standing in front of a colorful background with a bookshelf on the left and a table on the right. She is wearing a sheer, snake-patterned top and dark jeans. The woman rubs her hands together while speaking. She then spreads her hands apart and continues talking. She points with both hands while speaking. Finally, she lowers her hands and stands still.",
+                video: "assets/videos/example1.mp4" 
+            },
+            {
+                text: "<Transcript>: I love renewables. I love Michael Skelly, who just talked to you about wind. But I think there's a lot of bang for your buck in things you can't see. <Audio Caption>: A female speaker, with a neutral tone and moderate pace, discusses energy efficiency and renewables, expressing enthusiasm for Michael Skelly's talk on wind, while the atmosphere is focused and informative. <Video Caption>: A woman in a dark blazer and shirt is speaking on stage, holding a microphone in her right hand. She gestures with her left hand, extending it outward and then bringing it back. She continues to speak, occasionally raising her left hand and making various gestures. The background is a green and black screen with a partially visible sign that reads 'info'.",
+                video: "assets/videos/example2.mp4"
+            },
+            {
+                text: "<Transcript>: So that game that we just played or watched is basically banned in every single country. <Audio Caption>: The audio features a male speaker with a neutral tone and moderate pace discussing a banned game, set against a backdrop of a sad, futuristic pop song with synthesizers, drums, bass, piano, and electric guitar.. <Video Caption>: A man wearing a green cap and a sleeveless green shirt is sitting in front of a microphone in a room with white doors and a purple light on the left side. He is talking and making various hand gestures, including raising both hands, spreading them apart, and making peace signs with both hands.",
+                video: "assets/videos/example3.mp4"
+            },
+            {
+                text: "<Transcript>: I think before we have to like, you know, back up after Diwali and leave.. So that's why I thought in the last couple of days, I'll just chill in this house and I'm done creating content.. <Audio Caption>: A male speaker, with a neutral tone and moderate pace, discusses wrapping up content creation and preparing to leave after Diwali, while the ambient scene suggests a woman talking about the same topic.. <Video Caption>: A woman in a yellow top is speaking while making various hand gestures. She raises both hands, moves them in different positions, and crosses them in front of her chest. The background features a curtain with red and white patterns and an air conditioner above it.",
+                video: "assets/videos/example4.mp4"
+            },
+            {
+                text: "<Transcript>: because cats. So I hope you enjoyed this video. Thumbs up, subscribe. <Audio Caption>: A female voice, speaking at a moderate pace and in a neutral tone, wraps up a video by mentioning cats and encouraging viewers to give a thumbs up.. <Video Caption>: A woman is sitting in front of a green wall decorated with colorful string lights and a Christmas tree on the left. She is wearing a dark blue sweater with white patterns. Behind her, there is a stack of books on a table. She looks at the camera and starts speaking, then raises her right hand and waves. She continues to speak, then lowers her hand and looks to the left side of the frame. She then looks back at the camera and raises both hands, giving a thumbs-up gesture. Finally, she lowers her hands and continues speaking.",
+                video: "assets/videos/example5.mp4"
+            },
+            {
+                text: "<Transcript>: As far as gloves go for the job today, I decided on these kind of thinner leather ones. They're really nice. <Audio Caption>: A female voice, speaking neutrally and at a moderate pace, discusses her choice of thinner leather gloves for the day's work, while intermittent clicking sounds are heard in the background. <Video Caption>: A woman wearing a gray sweatshirt with 'NAM 2019' logo and a blue headband is standing outdoors with a clear sky and some structures in the background. She is holding a pair of yellow gloves with black stars on them. She begins to put on the gloves, first putting her right hand into the right glove. She then adjusts the gloves on her hands, ensuring they fit properly. Finally, she looks down at the gloves on her hands while continuing to adjust them.",
+                video: "assets/videos/example6.mp4"
+            },
+            {
+                text: "<Transcript>: when there is no competition we think well what what can we do better. <Audio Caption>: A male speaker, with a neutral tone and moderate pace, discusses striving for improvement even without competition, set against a backdrop of a sad violin melody, gentle piano, and soft percussion.. <Video Caption>: A man wearing a black polo shirt and black pants is seated on a chair with a golden frame against a plain white background. He is speaking and making various hand gestures, including opening his hands, pointing, and holding his hands together.",
+                video: "assets/videos/example7.mp4"
+            },
+            {
+                text: "<Transcript>: about trying to understand the people that you want to serve. That is also an element of doing your research.. Sometimes it is a matter of sitting down with people and asking them. <Audio Caption>: A female speaker, with a neutral tone and moderate pace, discusses the importance of understanding people and conducting research, emphasizing the value of direct conversations.. <Video Caption>: A woman with long, dark hair is sitting in a room with a white wall and a black chair behind her. She is wearing a white shirt and is talking while making various hand gestures. The background includes a white dresser with a few items on top, including a framed photo.",
+                video: "assets/videos/example8.mp4"
+            },
+            {
+                text: "<Transcript>: beautiful symbolic nature of Holi is that this day you come and you throw color on each other and it's all about love and how. <Audio Caption>: A female voice, speaking neutrally and at a moderate pace, explains the symbolic meaning of Holi and the act of throwing colors as a gesture of love.. <Video Caption>: A man with a painted face and wearing a cap and a shirt covered in colorful powder is standing on a sidewalk next to a road lined with trees and greenery. He is talking and making various hand gestures while looking at the camera. The background shows a road with a few cars and a sign that reads 'INDIA' on the left side.",
+                video: "assets/videos/example9.mp4"
+            },
+            {
+                text: "<Transcript>: Rolls-Royce designed the Cullinan for a younger buyer, remember?. It's for someone who wants practicality. <Audio Caption>: A male voice, speaking in a neutral tone and moderate pace, discusses Rolls-Royce's design of the Cullinan for younger buyers, emphasizing its practicality.. <Video Caption>: A man is seated in the driver's seat of a car, wearing a white t-shirt with the word 'WISPS' on it and a green cap. He is talking and making various hand gestures while looking towards the camera. The car's interior is visible, including the white seats and the steering wheel. Outside the car, several vehicles are seen driving on the road.",
+                video: "assets/videos/example10.mp4"
+            },
+            {
+                text: "<Transcript>: up thank you guys so much for watching and if you want to check me out on some other platforms instagram pinterest i'll have all the links in the description. <Audio Caption>: A female speaker, with a neutral tone and moderate pace, thanks viewers and invites them to follow her on Instagram and Pinterest, mentioning links in the description.. <Video Caption>: A woman wearing a colorful, patterned robe is speaking to the camera in a room with white cabinets and a plant in the background. She gestures with her hands, moving them up and down and occasionally pointing. The woman continues to speak, making various hand movements, including raising her hands and bringing them together.",
+                video: "assets/videos/example11.mp4"
+            },
+            {
+                 text: "<Transcript>: I'm gonna use the Flush Blush in Wigs. <Audio Caption>: A female voice, speaking neutrally and at a moderate pace, discusses using the flush blush in wigs, with no background noise or emotional inflection.. <Video Caption>: A woman wearing a white t-shirt is seen in a room with a white ceiling and a window on the left side. She uses her left hand to adjust her hair while talking. She then picks up a small round container with both hands and brings it closer to the camera. The container has a label with the brand name 'wigs' and some other text.",
+                video: "assets/videos/example12.mp4"
+            },
+            {
+                text: "<Audio Caption>: People march in unison, accompanied by a choir's singing and music. <Video Caption>: A marching band dressed in blue uniforms with white hats and 'S' insignias is parading down a street, playing instruments and moving in formation. The band is flanked by people on both sides of the street, who are watching and cheering. In the background, there is a large building and a bus with a sign on it. The scene is lively with many spectators, some of whom are taking photos or videos. The logo 'Human Jukebox' is visible in the bottom right corner of the frames.",
+                video: "assets/videos/example13.mp4"
+            },
+            {
+                text: "<Audio Caption>: Playing djembe. <Video Caption>: A person is seated and playing a drum with their hands, positioned in a room with a curtain and some furniture in the background. The person is wearing a long-sleeved shirt and dark pants. The drum is placed on their lap, and they are using both hands to strike the drumhead rhythmically. The drum has a natural wood finish with a light-colored surface. The person's hands move swiftly and precisely, creating a rhythmic pattern on the drum. The background includes a curtain and some indistinct objects, suggesting an indoor setting.",
+                video: "assets/videos/example14.mp4"
+            },
+            {
+                text: "<Audio Caption>: The audio features a didgeridoo being played, accompanied by a percussive stick and background music; the sound is rich, full-bodied, and deep with a reverberating quality. <Video Caption>: A man wearing a blue shirt is sitting on the sandy beach, playing a long, decorated musical instrument. The background shows a clear sky and the ocean, indicating a sunny day. The man is seated on a piece of cloth or a mat, with his legs bent and his feet visible. He is holding the instrument with both hands, one on each side, and blowing into the mouthpiece while moving his fingers along the body of the instrument.",
+                video: "assets/videos/example15.mp4"
+            },
+            {
+                text: "<Audio Caption>: An airplane flyby, accompanied by the low-frequency, heavy engine sound of a propeller or airscrew. <Video Caption>: A small aircraft with 'NAVY VTS' markings on its tail and fuselage is seen taxiing on a grassy runway. The plane continues to move forward, gradually increasing its speed. The aircraft's propeller spins rapidly as it gains momentum. The plane lifts off the ground, with its landing gear still extended. The aircraft ascends into the air, leaving the runway behind. The plane flies steadily, with the background showing a lush green landscape and distant trees.",
+                video: "assets/videos/example21.mp4"
+            },
+            // {
+            //      text: "<Audio Caption>: volcano explosion with a loud blast followed by gunshots and artillery fire. <Video Caption>: The video shows a coastal area with houses and a clear blue sky. In the distance, a large explosion occurs in the water, creating a massive plume of black and white smoke that rises and expands. The smoke continues to billow upwards and outwards, becoming denser and more voluminous as it ascends. The explosion's impact is evident as the smoke spreads further, covering a larger area and obscuring the view of the water and coastline.",
+            //     video: "assets/videos/example16.mp4"
+            // },
+            {
+                text: "<Audio Caption>: An orchestra plays a violin melody with a sustained string section in the background. <Video Caption>: A woman in a sparkling purple dress is playing the violin while standing in front of an orchestra. The orchestra members are seated behind her, playing their instruments attentively. The woman smiles and looks to her right, then turns her head back to face forward. She continues to play the violin with focus and precision. The background shows a plain wall, and the orchestra members are dressed in formal attire, with some wearing black and others in dark clothing.",
+                video: "assets/videos/example17.mp4"
+            },
+            {
+                text: "<Audio Caption>: A horse gallops on a dirt path, hooves thudding rhythmically. <Video Caption>: A chestnut horse runs swiftly along a dusty trail, mane flying, kicking up clouds of dirt as it races past a wooden fence.",
+                video: "assets/videos/example18.mp4"
+            },
+            {
+                text: "<Audio Caption>: Thunder rumbles in the distance, followed by a sharp crack of lightning. <Video Caption>: Dark storm clouds gather over a field, with a bright flash of lightning illuminating the sky, followed by the distant roll of thunder.",
+                video: "assets/videos/example19.mp4"
+            },
+            {
+                text: "<Audio Caption>: Birds chirp and sing in the early morning, with the flapping of wings. <Video Caption>: A group of sparrows flit between branches in a blooming cherry tree, some hopping on the ground to peck for seeds.",
+                video: "assets/videos/example20.mp4"
+            }
+        ];
+
+        function escapeHtml(str) {
+            // 防止 prompt 含有 < > 等被当成 HTML
+            return String(str)
+                .replaceAll('&', '&amp;')
+                .replaceAll('<', '&lt;')
+                .replaceAll('>', '&gt;')
+                .replaceAll('"', '&quot;')
+                .replaceAll("'", '&#39;');
+        }
+
+        // 与 CSS 的“桌面列数”保持一致，用于按行打包换行
+        function getColumnsForOrientation(orientation) {
+            // 现在 portrait/landscape 都按 4 来打包（对应 CSS 默认 repeat(4, 1fr)）
+            return orientation === "portrait" ? 4 : 4;
+        }
+
+        function classifyOrientationByMetadata(src) {
+            return new Promise((resolve) => {
+                const v = document.createElement('video');
+                v.preload = 'metadata';
+                v.muted = true;
+                v.playsInline = true;
+
+                const cleanup = () => {
+                    v.removeEventListener('loadedmetadata', onLoaded);
+                    v.removeEventListener('error', onError);
+                    v.src = '';
+                };
+
+                const onLoaded = () => {
+                    const w = v.videoWidth || 0;
+                    const h = v.videoHeight || 0;
+                    cleanup();
+                    if (w > 0 && h > 0) resolve(w >= h ? 'landscape' : 'portrait');
+                    else resolve('landscape');
+                };
+
+                const onError = () => {
+                    cleanup();
+                    resolve('landscape');
+                };
+
+                v.addEventListener('loadedmetadata', onLoaded);
+                v.addEventListener('error', onError);
+
+                // 不带 #t fragment，避免某些浏览器对 metadata 行为不一致
+                v.src = src;
+            });
+        }
+
+        function createRow(orientation) {
+            const row = document.createElement('div');
+            row.className = `gallery-row ${orientation}`;
+            row.dataset.orientation = orientation;
+            return row;
+        }
+
+        function createCard(item, orientation) {
+            const card = document.createElement('div');
+            card.className = `video-card ${orientation}`;
+
+            const safeText = escapeHtml(item.text);
+
+            card.innerHTML = `
+                <video class="video-element" 
+                       playsinline 
+                       loop
+                       muted
+                       preload="metadata">
+                    <source src="${item.video}#t=0.001" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                
+                <div class="play-icon">
+                    <i class="fas fa-play-circle"></i>
+                </div>
+
+                <div class="prompt-overlay">
+                    <div class="prompt-label">Prompt</div>
+                    <div class="prompt-text">${safeText}</div>
+                </div>
+            `;
+
+            const video = card.querySelector('video');
+
+            card.addEventListener('click', () => {
+                if (video.paused) {
+                    video.muted = false;
+                    video.play();
+                    card.classList.add('playing');
+                } else {
+                    video.pause();
+                    card.classList.remove('playing');
+                }
+            });
+
+            card.addEventListener('mouseleave', () => {
+                if (!video.paused) {
+                    video.pause();
+                    card.classList.remove('playing');
+                    video.currentTime = 0;
+                }
+            });
+
+            return card;
+        }
+
+        async function renderPackedRows() {
+            // 1) 先拿到每个视频的方向
+            const items = await Promise.all(
+                exampleData.map(async (item) => {
+                    const orientation = await classifyOrientationByMetadata(item.video);
+                    return { ...item, orientation };
+                })
+            );
+
+            // 2) 按行打包：同一行同方向；达到该方向最大列数则换行；方向切换也换行（留空/不混排）
+            let currentRow = null;
+            let currentOrientation = null;
+            let currentCount = 0;
+
+            for (const it of items) {
+                const ori = it.orientation;
+                const maxCols = getColumnsForOrientation(ori);
+
+                const needNewRow =
+                    !currentRow ||
+                    currentOrientation !== ori ||
+                    currentCount >= maxCols;
+
+                if (needNewRow) {
+                    currentRow = createRow(ori);
+                    galleryContainer.appendChild(currentRow);
+                    currentOrientation = ori;
+                    currentCount = 0;
+                }
+
+                const card = createCard(it, ori);
+                currentRow.appendChild(card);
+                currentCount++;
+            }
+        }
+
+        renderPackedRows();
+
+        // --- Copy Bibtex Logic ---
+        function copyBibtex(btn) {
+            const content = document.querySelector('.bibtex-content').innerText;
+            navigator.clipboard.writeText(content).then(() => {
+                const originalText = btn.innerText;
+                btn.innerText = "Copied!";
+                btn.style.background = "var(--accent-primary)";
+                btn.style.color = "#fff";
+                
+                setTimeout(() => {
+                    btn.innerText = originalText;
+                    btn.style.background = "";
+                    btn.style.color = "";
+                }, 2000);
+            });
+        }
+    </script>
+    
+</body>
+</html>
