@@ -197,6 +197,13 @@
       display: inline-block;
     }
 
+    .modality-header {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+
     @media (max-width: 760px) {
       .hero-body {
         padding-top: 3rem;
@@ -232,26 +239,17 @@
         </div>
         <div class="publication-links">
           <span class="link-block">
-            <a href="#" class="external-link button is-normal is-rounded is-dark">
-              <span class="icon">
-                <i class="fas fa-file-pdf"></i>
-              </span>
+            <a href="https://arxiv.org/abs/2605.18257" class="external-link button is-normal is-rounded is-dark">
               <span>Paper</span>
             </a>
           </span>
           <span class="link-block">
             <a href="https://github.com/Visual-AI/CodeBind/tree/main" class="external-link button is-normal is-rounded is-dark">
-              <span class="icon">
-                <i class="fab fa-github"></i>
-              </span>
               <span>Code</span>
             </a>
           </span>
           <span class="link-block">
             <a href="#BibTeX" class="external-link button is-normal is-rounded is-dark">
-              <span class="icon">
-                <i class="far fa-images"></i>
-              </span>
               <span>BibTeX</span>
             </a>
           </span>
@@ -316,13 +314,13 @@
           <thead>
             <tr>
               <th></th>
-              <th colspan="2"><img src="./static/icon/image.png" alt="Image" class="modal-icon"> Image</th>
-              <th colspan="2"><img src="./static/icon/video.png" alt="Video" class="modal-icon"> Video</th>
-              <th colspan="2"><img src="./static/icon/depth.png" alt="Depth" class="modal-icon"> Depth</th>
-              <th colspan="5"><img src="./static/icon/audio.png" alt="Audio" class="modal-icon"> Audio</th>
-              <th colspan="2"><img src="./static/icon/thermal.png" alt="Thermal" class="modal-icon"> Thermal</th>
-              <th colspan="3"><img src="./static/icon/tactile.png" alt="Tactile" class="modal-icon"> Tactile</th>
-              <th><img src="./static/icon/eeg.png" alt="EEG" class="modal-icon"> EEG</th>
+              <th colspan="2"><span class="modality-header"><img src="./static/icon/image.png" alt="Image" class="modal-icon"> Image</span></th>
+              <th colspan="2"><span class="modality-header"><img src="./static/icon/video.png" alt="Video" class="modal-icon"> Video</span></th>
+              <th colspan="2"><span class="modality-header"><img src="./static/icon/depth.png" alt="Depth" class="modal-icon"> Depth</span></th>
+              <th colspan="5"><span class="modality-header"><img src="./static/icon/audio.png" alt="Audio" class="modal-icon"> Audio</span></th>
+              <th colspan="2"><span class="modality-header"><img src="./static/icon/thermal.png" alt="Thermal" class="modal-icon"> Thermal</span></th>
+              <th colspan="3"><span class="modality-header"><img src="./static/icon/tactile.png" alt="Tactile" class="modal-icon"> Tactile</span></th>
+              <th><span class="modality-header"><img src="./static/icon/eeg.png" alt="EEG" class="modal-icon"> EEG</span></th>
             </tr>
             <tr>
               <th>Method</th>
@@ -397,11 +395,11 @@
           <thead>
             <tr>
               <th></th>
-              <th colspan="2"><img src="./static/icon/depth.png" alt="Depth" class="modal-icon"> Depth</th>
-              <th colspan="5"><img src="./static/icon/audio.png" alt="Audio" class="modal-icon"> Audio</th>
-              <th colspan="3"><img src="./static/icon/tactile.png" alt="Tactile" class="modal-icon"> Tactile</th>
-              <th><img src="./static/icon/eeg.png" alt="EEG" class="modal-icon"> EEG</th>
-              <th><img src="./static/icon/point_cloud.png" alt="3D" class="modal-icon"> 3D</th>
+              <th colspan="2"><span class="modality-header"><img src="./static/icon/depth.png" alt="Depth" class="modal-icon"> Depth</span></th>
+              <th colspan="5"><span class="modality-header"><img src="./static/icon/audio.png" alt="Audio" class="modal-icon"> Audio</span></th>
+              <th colspan="3"><span class="modality-header"><img src="./static/icon/tactile.png" alt="Tactile" class="modal-icon"> Tactile</span></th>
+              <th><span class="modality-header"><img src="./static/icon/eeg.png" alt="EEG" class="modal-icon"> EEG</span></th>
+              <th><span class="modality-header"><img src="./static/icon/point_cloud.png" alt="3D" class="modal-icon"> 3D</span></th>
             </tr>
             <tr>
               <th>Method</th>
@@ -466,11 +464,11 @@
   <section class="section" id="BibTeX">
     <div class="container is-max-desktop content">
       <h2 class="title">BibTeX</h2>
-      <pre><code>@article{chen-etal-2026-codebind,
-  title   = {CodeBind: Decoupled Representation Learning for Multimodal Alignment with Unified Compositional Codebook},
-  author  = {Chen, Zeyu and Li, Jie and Han, Kai},
-  journal = {arXiv preprint arXiv:26XX.XXXXX},
-  year    = {2026},
+      <pre><code>@article{chen2026codebind,
+  title     = {CodeBind: Decoupled Representation Learning for Multimodal Alignment with Unified Compositional Codebook},
+  author    = {Chen, Zeyu and Li, Jie and Han, Kai},
+  journal   = {arXiv preprint arXiv:2605.18257},
+  year      = {2026},
 }</code></pre>
     </div>
   </section>
