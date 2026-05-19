@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Sculpt4D: Generating 4D Shapes via Sparse-Attention Diffusion Transformers">
+    <meta name="keywords" content="4D generation, diffusion transformer, sparse attention, 3D shape generation">
+    <title>Sculpt4D: Generating 4D Shapes via Sparse-Attention Diffusion Transformers</title>
+
+    <link href="https://fonts.googleapis.com/css?family=Google+Sans|Noto+Sans|Castoro" rel="stylesheet">
+    <link rel="stylesheet" href="static/css/style.css">
+
+    <script type="importmap">
+    {
+        "imports": {
+            "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+            "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+        }
+    }
+    </script>
+</head>
+<body>
+
+<!-- ============ HERO ============ -->
+<section class="hero">
+    <div class="hero-content">
+        <h1 class="paper-title">
+            Sculpt4D: Generating 4D Shapes<br>
+            via Sparse-Attention Diffusion Transformers
+        </h1>
+
+        <div class="authors">
+            <span class="author"><a href="#">Minghao Yin</a><sup>1</sup></span>
+            <span class="author"><a href="#">Wenbo Hu</a><sup>2†</sup></span>
+            <span class="author"><a href="#">Jiale Xu</a><sup>2</sup></span>
+            <span class="author"><a href="#">Ying Shan</a><sup>2</sup></span>
+            <span class="author"><a href="#">Kai Han</a><sup>1‡</sup></span>
+        </div>
+
+        <div class="affiliations">
+            <span><sup>1</sup>The University of Hong Kong</span>
+            <span><sup>2</sup>ARC Lab, Tencent PCG</span>
+        </div>
+        <div class="footnote-marks">
+            <sup>†</sup>Project lead &nbsp;&nbsp; <sup>‡</sup>Corresponding author
+        </div>
+
+        <!-- Badges -->
+        <div class="badge-row">
+            <a class="badge" href="https://arxiv.org/abs/2604.21592" target="_blank" rel="noopener">
+                <span class="badge-icon">📄</span>&nbsp;Paper (arXiv)
+            </a>
+            <a class="badge" href="https://arxiv.org/pdf/2604.21592" target="_blank" rel="noopener">
+                <span class="badge-icon">📑</span>&nbsp;PDF
+            </a>
+            <span class="badge badge-disabled" title="Coming soon">
+                <span class="badge-icon">💻</span>&nbsp;Code (Coming soon)
+            </span>
+            <a class="badge" href="#results">
+                <span class="badge-icon">🎬</span>&nbsp;Results
+            </a>
+            <a class="badge" href="#citation">
+                <span class="badge-icon">📚</span>&nbsp;BibTeX
+            </a>
+        </div>
+    </div>
+
+    <!-- Teaser image -->
+    <div class="teaser-container">
+        <img src="static/images/teaser.png" alt="Teaser" class="teaser-img">
+        <p class="caption">
+            <b>High-Fidelity 4D Mesh Generation.</b> Given input videos, Sculpt4D generates
+            diverse, temporally coherent 4D mesh sequences, handling complex motions and
+            topological changes. Each row shows selected keyframes from a generated sequence.
+        </p>
+    </div>
+</section>
+
+<!-- ============ ABSTRACT ============ -->
+<section class="section">
+    <div class="container">
+        <h2>Abstract</h2>
+        <p class="abstract">
+            Recent breakthroughs in 3D generative modeling have yielded remarkable progress
+            in static shape synthesis, yet high-fidelity dynamic 4D generation remains
+            elusive, hindered by temporal artifacts and prohibitive computational demand.
+            We present <b>Sculpt4D</b>, a native 4D generative framework that seamlessly
+            integrates efficient temporal modeling into a pretrained 3D Diffusion
+            Transformer (Hunyuan3D 2.1), thereby mitigating the scarcity of 4D training
+            data. At its core lies a <b>Block Sparse Attention</b> mechanism that preserves
+            object identity by anchoring to the initial frame while capturing rich motion
+            dynamics via a time-decaying sparse mask. This design faithfully models complex
+            spatiotemporal dependencies with high fidelity, while sidestepping the quadratic
+            overhead of full attention and reducing network total computation by
+            <b>56%</b>. Consequently, Sculpt4D establishes a new state-of-the-art in
+            temporally coherent 4D synthesis and charts a path toward efficient and
+            scalable 4D generation.
+        </p>
+    </div>
+</section>
+
+<!-- ============ FRAMEWORK ============ -->
+<section class="section section-alt">
+    <div class="container">
+        <h2>Framework Overview</h2>
+        <div class="figure">
+            <img src="static/images/framework.png" alt="Framework">
+            <p class="caption">
+                <b>Overview of our 4D generation framework.</b> Conditioned on an image
+                sequence, we use Consistent Surface Sampling to acquire both sharp edge
+                points and random surface points, which a vector set VAE encodes into
+                shape latents. These latents are processed by 4D DiT blocks, which use
+                cross-attention for image conditioning and our novel Block Sparse
+                Attention. This sparse attention, guided by a composite mask (Temporal
+                Sparse and First-Frame Anchor), efficiently captures motion while
+                ensuring identity consistency. Finally, a decoder produces the final mesh
+                sequence from the denoised latents.
+            </p>
+        </div>
+
+        <!-- Key ideas -->
+        <div class="highlight-grid">
+            <div class="highlight">
+                <h3>Consistent Surface Sampling</h3>
+                <p>
+                    Barycentric propagation from a rest-pose canonical mapping, plus
+                    projection onto per-frame watertight meshes, ensures temporally
+                    coherent inputs to the VAE.
+                </p>
+            </div>
+            <div class="highlight">
+                <h3>Shared-Noise VAE</h3>
+                <p>
+                    A single noise vector \(\epsilon_{seq}\) is broadcast across frames,
+                    so latent dynamics are driven purely by deterministic
+                    \(\mu_t,\sigma_t\) changes — eliminating temporal jitter in the
+                    latent space.
+                </p>
+            </div>
+            <div class="highlight">
+                <h3>Block Sparse Attention</h3>
+                <p>
+                    A <i>first-frame anchor</i> locks object identity, and a
+                    <i>time-decaying diagonal mask</i> preserves spatial correspondence
+                    while pruning uncorrelated pairs — cutting <b>56%</b> of compute.
+                </p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ============ INTERACTIVE RESULTS — 16 frames ============ -->
+<section class="section" id="results">
+    <div class="container">
+        <h2>4D Generation Results &mdash; 16 Frames</h2>
+        <p class="note">
+            Use the slider below each example to scrub through time and sync the input
+            video with our generated mesh. Click <b>▶ Play</b> for automatic playback.
+            Drag the 3D viewer to rotate.
+        </p>
+
+        <div id="results-grid-16" class="results-grid">
+            <!-- Populated by viewer.js using RESULTS_CONFIG_16 -->
+        </div>
+    </div>
+</section>
+
+<!-- ============ INTERACTIVE RESULTS — 32 frames ============ -->
+<section class="section section-alt" id="results-32">
+    <div class="container">
+        <h2>4D Generation Results &mdash; 32 Frames</h2>
+        <p class="note">
+            Longer sequences demonstrating our sparse attention's ability to scale to
+            high frame counts without quality degradation.
+        </p>
+
+        <div id="results-grid-32" class="results-grid">
+            <!-- Populated by viewer.js using RESULTS_CONFIG_32 -->
+        </div>
+    </div>
+</section>
+
+<!-- ============ COMPARISON (figures from paper) ============ -->
+<section class="section section-alt">
+    <div class="container">
+        <h2>Comparison with State-of-the-Art</h2>
+        <div class="figure">
+            <img src="static/images/comparison.png" alt="Comparison">
+            <p class="caption">
+                <b>Qualitative comparison of 4D mesh generation.</b> We compare Sculpt4D
+                against V2M4 and L4GM. Given an input image (left), we show two generated
+                views per method. Top and bottom rows correspond to time frames Time 1 and
+                Time 2, respectively.
+            </p>
+        </div>
+
+        <h3>Quantitative Comparison</h3>
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Representation</th>
+                    <th>Chamfer ↓</th>
+                    <th>IoU ↑</th>
+                    <th>F-Score ↑</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>Hunyuan3D</td>    <td>SDF</td>           <td>0.1220</td><td>0.3125</td><td>0.2820</td></tr>
+                <tr><td>Hunyuan3D*</td>   <td>SDF</td>           <td>0.1231</td><td>0.3176</td><td>0.2883</td></tr>
+                <tr><td>L4GM</td>         <td>MV-3D GS</td>      <td>0.1655</td><td>—</td>     <td>0.2033</td></tr>
+                <tr><td>V2M4</td>         <td>mesh + deform</td> <td>0.1268</td><td>0.3071</td><td>0.2909</td></tr>
+                <tr><td>GVFD</td>         <td>3D GS + deform</td><td>0.4235</td><td>—</td>     <td>0.0717</td></tr>
+                <tr class="highlight-row">
+                    <td><b>Sculpt4D (Ours)</b></td>
+                    <td><b>SDF</b></td>
+                    <td><b>0.1052</b></td>
+                    <td><b>0.3381</b></td>
+                    <td><b>0.3137</b></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<!-- ============ IN-THE-WILD ============ -->
+<section class="section">
+    <div class="container">
+        <h2>In-the-Wild Results</h2>
+        <div class="figure">
+            <img src="static/images/inthewild.png" alt="In-the-wild">
+            <p class="caption">
+                <b>Mesh sequences generated from in-the-wild data.</b> Sculpt4D
+                generalizes robustly to diverse unseen dynamics while maintaining high
+                geometric fidelity.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ============ TEXTURED ============ -->
+<section class="section section-alt">
+    <div class="container">
+        <h2>Textured 4D Mesh Sequences</h2>
+        <div class="figure">
+            <img src="static/images/textured.png" alt="Textured comparison">
+            <p class="caption">
+                <b>Qualitative results of textured mesh sequences.</b> Using global rigid
+                registration plus local ARAP alignment, textures from the first frame
+                propagate seamlessly across the entire sequence.
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- ============ ABLATION ============ -->
+<section class="section">
+    <div class="container">
+        <h2>Ablation Study</h2>
+        <table class="result-table">
+            <thead>
+                <tr>
+                    <th></th>
+                    <th>Chamfer ↓</th>
+                    <th>IoU ↑</th>
+                    <th>F-Score ↑</th>
+                    <th>PFLOPs</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr><td>w/o consistent sampling</td><td>0.1128</td><td>0.3375</td><td>0.3380</td><td>186.3</td></tr>
+                <tr><td>w/o shared noise</td>       <td>0.1051</td><td>0.3396</td><td>0.3342</td><td>186.3</td></tr>
+                <tr><td>w/o sharp-edge sampling</td><td>0.1005</td><td>0.3408</td><td>0.3369</td><td>186.3</td></tr>
+                <tr><td>w/o attention sink</td>     <td>0.0986</td><td>0.3442</td><td>0.3375</td><td>169.8</td></tr>
+                <tr><td>Temporal-only attention</td><td>0.2071</td><td>0.1972</td><td>0.1833</td><td>60.2</td></tr>
+                <tr><td>Fixed stride</td>           <td>0.1124</td><td>0.3298</td><td>0.3306</td><td>167.1</td></tr>
+                <tr><td>Full attention</td>         <td>0.0958</td><td>0.3466</td><td>0.3402</td><td>425.7</td></tr>
+                <tr class="highlight-row">
+                    <td><b>Sculpt4D (Ours)</b></td>
+                    <td><b>0.0972</b></td>
+                    <td><b>0.3451</b></td>
+                    <td><b>0.3383</b></td>
+                    <td><b>186.3</b></td>
+                </tr>
+            </tbody>
+        </table>
+        <p class="note">
+            Per-layer, our sparse attention uses only <b>35%</b> of the PFLOPs required
+            by full attention — an advantage that grows with sequence length.
+        </p>
+    </div>
+</section>
+
+<!-- ============ CITATION ============ -->
+<section class="section section-alt" id="citation">
+    <div class="container">
+        <h2>BibTeX</h2>
+        <pre class="bibtex">
+@inproceedings{sculpt4d2026,
+  title={Sculpt4D: Generating 4D Shapes via Sparse-Attention Diffusion Transformers},
+  author={Yin, Minghao and Hu, Wenbo and Xu, Jiale and Shan, Ying and Han, Kai},
+  booktitle={Proceedings of the IEEE/CVF Conference on Computer Vision and Pattern Recognition (CVPR)},
+  year={2026}
+}</pre>
+    </div>
+</section>
+
+<footer>
+    <p>
+        Website template borrows from
+        <a href="https://nerfies.github.io/" target="_blank">Nerfies</a>.
+        Source code available on <a href="#">GitHub</a>.
+    </p>
+</footer>
+
+<!-- Config + Viewer -->
+<script>
+/**
+ * ============ RESULTS CONFIG ============
+ * Each entry is one example shown in the interactive gallery.
+ *
+ *   id            : folder name under static/meshes/ (where PLY files live)
+ *   label         : display name
+ *   input_video   : path to the input video (under static/videos/)
+ *                   (set to null to hide the video panel)
+ *   turntable     : optional path to a pre-rendered turntable mp4 of our 4D result
+ *                   (if null, we fall back to interactive three.js PLY viewer)
+ *   num_frames    : number of PLY frames for this case (16 or 32 typically)
+ *   file_prefix   : defaults to "frame_" -> frame_0000.ply
+ *   axis_up       : one of 'y' / 'z' / 'x' for orientation fix (default 'y')
+ */
+
+// ---- 16-frame sequences ----
+window.RESULTS_CONFIG_16 = [
+    { id: "door_16",      label: "Door",          input_video: "static/videos/door_16_input.mp4",      turntable: null, num_frames: 16, axis_up: "y" },
+    { id: "box_16",       label: "Box",           input_video: "static/videos/box_16_input.mp4",       turntable: null, num_frames: 16, axis_up: "y" },
+    { id: "angle_16",     label: "Angle",         input_video: "static/videos/angle_16_input.mp4",     turntable: null, num_frames: 16, axis_up: "y" },
+    { id: "mandance_16",  label: "Dancing Man",   input_video: "static/videos/mandance_16_input.mp4",  turntable: null, num_frames: 16, axis_up: "y" },
+    { id: "chilun10_16",  label: "Gear",          input_video: "static/videos/chilun10_16_input.mp4",  turntable: null, num_frames: 16, axis_up: "y" },
+    { id: "women_16",     label: "Woman",         input_video: "static/videos/women_16_input.mp4",     turntable: null, num_frames: 16, axis_up: "y" },
+    { id: "indiwomen_16", label: "Indian Woman",  input_video: "static/videos/indiwomen_16_input.mp4", turntable: null, num_frames: 16, axis_up: "y" },
+    { id: "fatman_16",    label: "Big Guy",       input_video: "static/videos/fatman_16_input.mp4",    turntable: null, num_frames: 16, axis_up: "y" }
+];
+
+// ---- 32-frame sequences ----
+window.RESULTS_CONFIG_32 = [
+    { id: "angle_32",   label: "Angle",  input_video: "static/videos/angle_32_input.mp4",   turntable: null, num_frames: 32, axis_up: "y" },
+    { id: "sonic_32",   label: "Sonic",  input_video: "static/videos/sonic_32_input.mp4",   turntable: null, num_frames: 32, axis_up: "y" },
+    { id: "chilun_32",  label: "Gear",   input_video: "static/videos/chilun_32_input.mp4",  turntable: null, num_frames: 32, axis_up: "y" },
+    { id: "fatman_32",  label: "Big Guy",input_video: "static/videos/fatman_32_input.mp4",  turntable: null, num_frames: 32, axis_up: "y" },
+    { id: "door_32",    label: "Door",   input_video: "static/videos/door_32_input.mp4",    turntable: null, num_frames: 32, axis_up: "y" },
+    { id: "women_32",   label: "Woman",  input_video: "static/videos/women_32_input.mp4",   turntable: null, num_frames: 32, axis_up: "y" }
+];
+</script>
+<script type="module" src="static/js/viewer.js"></script>
+
+</body>
+</html>
