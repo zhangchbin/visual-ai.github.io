@@ -1,0 +1,913 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Project page for the survey Category Discovery: An Open-World Perspective.">
+    <title>Category Discovery: An Open-World Perspective</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #fff;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        section {
+            margin-bottom: 0;
+            padding: 80px 0;
+        }
+
+        #hero,
+        #taxonomy,
+        #benchmark,
+        .bibtex-section {
+            background-color: #ffffff;
+        }
+
+        #contributions,
+        #components,
+        #future {
+            background-color: #f8f9fa;
+        }
+
+        .full-width-section {
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            padding-left: calc(50vw - 50%);
+            padding-right: calc(50vw - 50%);
+        }
+
+        .section-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .large-header {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            color: #1a1a1a;
+        }
+
+        .small-text {
+            font-size: 1.1rem;
+            color: #666;
+            max-width: 850px;
+            margin: 0 auto;
+            text-align: justify;
+        }
+
+        #hero {
+            padding: 60px 0 80px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 15px;
+            line-height: 1.2;
+            color: #1a1a1a;
+            text-align: justify;
+            text-align-last: center;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #4285f4 0%, #34a853 32%, #1ba1e2 66%, #0891b2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            color: transparent;
+            font-weight: 800;
+        }
+
+        .contributors {
+            font-size: 1.1rem;
+            margin-bottom: 40px;
+            line-height: 1.8;
+            color: #555;
+        }
+
+        .contributors a {
+            color: #1f71f6;
+            text-decoration: none;
+        }
+
+        .contributors a:hover {
+            text-decoration: underline;
+        }
+
+        .contributors .black-name {
+            color: #333;
+            text-decoration: none;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 50px;
+        }
+
+        .button {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 20px;
+            background: #4a5568;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            border: 1px solid #4a5568;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+            background: #1f71f6;
+            border-color: #1f71f6;
+        }
+
+        .button img {
+            width: 18px;
+            height: 18px;
+            filter: brightness(0) invert(1);
+        }
+
+        .hero-figure,
+        .taxonomy-figure {
+            width: 100%;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 30px;
+        }
+
+        .settings-overview-figure {
+            margin-top: 55px;
+        }
+
+        .description {
+            font-size: 1.2rem;
+            line-height: 1.7;
+            color: #000;
+            max-width: 900px;
+            margin: 0 auto;
+            text-align: justify;
+        }
+
+        .figure-caption {
+            max-width: 950px;
+            margin: -12px auto 35px;
+            color: #666;
+            font-size: 0.95rem;
+            text-align: justify;
+        }
+
+        .contributions-grid,
+        .insights-grid,
+        .future-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .contribution-item,
+        .insight-card,
+        .future-card,
+        .component-card,
+        .setting-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 28px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+            border: 1px solid #e8edf3;
+        }
+
+        .contribution-item h3,
+        .insight-card h3,
+        .future-card h3,
+        .component-card h3,
+        .setting-card h3 {
+            font-size: 1.35rem;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+
+        .contribution-item p,
+        .insight-card p,
+        .future-card p,
+        .component-card p,
+        .setting-card p {
+            color: #555;
+            text-align: justify;
+        }
+
+        .number-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 38px;
+            height: 38px;
+            margin-bottom: 15px;
+            border-radius: 50%;
+            background: #e9f2ff;
+            color: #1f71f6;
+            font-weight: 800;
+        }
+
+        .roadmap {
+            margin-top: 55px;
+            padding: 34px 30px 26px;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.07);
+            overflow-x: auto;
+        }
+
+        .roadmap h3 {
+            text-align: center;
+            font-size: 1.55rem;
+            margin-bottom: 28px;
+            color: #1a1a1a;
+        }
+
+        .roadmap-track {
+            min-width: 850px;
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            position: relative;
+            padding-top: 20px;
+        }
+
+        .roadmap-track::before {
+            content: "";
+            position: absolute;
+            left: 7%;
+            right: 7%;
+            top: 31px;
+            height: 4px;
+            border-radius: 4px;
+            background: linear-gradient(90deg, #9ec4e7, #1f71f6);
+        }
+
+        .milestone {
+            position: relative;
+            z-index: 1;
+            text-align: center;
+            padding: 0 10px;
+        }
+
+        .milestone-dot {
+            width: 24px;
+            height: 24px;
+            display: block;
+            margin: 0 auto 17px;
+            border-radius: 50%;
+            background: #1f71f6;
+            border: 5px solid #e9f2ff;
+            box-shadow: 0 2px 8px rgba(31, 113, 246, 0.25);
+        }
+
+        .milestone strong {
+            display: block;
+            color: #1a1a1a;
+            margin-bottom: 4px;
+        }
+
+        .milestone span {
+            display: block;
+            color: #666;
+            font-size: 0.88rem;
+            line-height: 1.35;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 22px;
+            margin-bottom: 36px;
+        }
+
+        .setting-card.ncd {
+            border-top: 5px solid #5c9dc0;
+        }
+
+        .setting-card.gcd {
+            border-top: 5px solid #d35d48;
+        }
+
+        .formula {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 7px 12px;
+            border-radius: 8px;
+            background: #f3f5f8;
+            color: #3d4a5c;
+            font-family: Georgia, "Times New Roman", serif;
+            font-size: 1.05rem;
+        }
+
+        .taxonomy-block {
+            margin-top: 34px;
+            text-align: center;
+        }
+
+        .taxonomy-block h3 {
+            font-size: 1.55rem;
+            margin-bottom: 18px;
+            color: #1a1a1a;
+        }
+
+        .chip-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            padding: 9px 15px;
+            border-radius: 50px;
+            background: #f3f6fa;
+            border: 1px solid #dce4ee;
+            color: #475569;
+            font-weight: 600;
+            font-size: 0.92rem;
+        }
+
+        .chip.derived {
+            background: #fff3ef;
+            border-color: #f0c9bf;
+            color: #a33f2d;
+        }
+
+        .chip.modality {
+            background: #fff8e8;
+            border-color: #efd7a1;
+            color: #95651a;
+        }
+
+        .components-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 22px;
+        }
+
+        .component-card {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .component-card::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #4285f4, #34a853);
+        }
+
+        .component-label {
+            display: inline-block;
+            margin-bottom: 15px;
+            color: #1f71f6;
+            font-size: 0.82rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        .method-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 18px;
+        }
+
+        .method-tags span {
+            padding: 5px 9px;
+            border-radius: 6px;
+            background: #f1f5f9;
+            color: #5d6b7d;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .insight-card {
+            min-height: 215px;
+        }
+
+        .insight-card .metric {
+            display: block;
+            font-size: 2rem;
+            font-weight: 800;
+            color: #1f71f6;
+            line-height: 1.15;
+            margin-bottom: 12px;
+        }
+
+        .table-container {
+            width: 100%;
+            overflow-x: auto;
+            margin-top: 45px;
+        }
+
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.95rem;
+            color: #333;
+            border: none;
+        }
+
+        .results-table th,
+        .results-table td {
+            padding: 12px 15px;
+            border-left: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+            vertical-align: top;
+        }
+
+        .results-table thead {
+            border-top: 2px solid #333;
+            border-bottom: 1.5px solid #888;
+        }
+
+        .results-table tbody {
+            border-bottom: 2px solid #333;
+        }
+
+        .results-table tbody tr:nth-child(even) {
+            background-color: #f8fafc;
+        }
+
+        .future-card {
+            min-height: 210px;
+        }
+
+        .future-card:last-child {
+            grid-column: 1 / -1;
+        }
+
+        .title-center {
+            text-align: center;
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 40px;
+            color: #1a1a1a;
+        }
+
+        .bibtex-container {
+            margin-bottom: 60px;
+            max-width: 1100px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .bibtex-wrapper {
+            position: relative;
+            background: #2d3748;
+            border-radius: 12px;
+            padding: 30px;
+            border: 1px solid #4a5568;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .copy-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: #4a5568;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .copy-button:hover {
+            background: #718096;
+        }
+
+        .copy-button img {
+            width: 16px;
+            height: 16px;
+            filter: brightness(0) invert(1);
+        }
+
+        .bibtex-entry {
+            color: #e2e8f0;
+            font-family: Monaco, Menlo, "Ubuntu Mono", monospace;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            overflow-x: auto;
+            white-space: pre;
+        }
+
+        @media (max-width: 900px) {
+            .components-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2rem;
+                text-align: center;
+            }
+
+            .large-header,
+            .title-center {
+                font-size: 2rem;
+            }
+
+            .contributions-grid,
+            .insights-grid,
+            .future-grid,
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .future-card:last-child {
+                grid-column: auto;
+            }
+
+            .contribution-item,
+            .insight-card,
+            .future-card,
+            .component-card,
+            .setting-card {
+                padding: 22px;
+            }
+
+            .bibtex-wrapper {
+                padding: 25px 18px;
+            }
+
+            .copy-button {
+                top: 12px;
+                right: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <section id="hero" class="full-width-section">
+            <div class="section-content">
+                <h1><span class="gradient-text">Category Discovery:</span><br>An Open-World Perspective</h1>
+                <p class="contributors">
+                    <a href="https://zhenqi-he.github.io/" target="_blank" rel="noopener">Zhenqi He</a>,
+                    <a href="https://scholar.google.com/citations?user=GHTB15QAAAAJ&amp;hl=en" target="_blank" rel="noopener">Yuanpei Liu</a>,
+                    <a href="https://www.kaihan.org/" target="_blank" rel="noopener">Kai Han</a>
+                    <br>
+                    <a href="https://visailab.github.io/index.html" target="_blank" rel="noopener">Visual AI Lab</a>,
+                    The University of Hong Kong
+                </p>
+
+                <div class="button-container">
+                    <a href="https://arxiv.org/pdf/2509.22542" target="_blank" rel="noopener" class="button">
+                        <img src="icons/pdf-icon.svg" alt=""> Paper
+                    </a>
+                    <a href="https://arxiv.org/abs/2509.22542" target="_blank" rel="noopener" class="button">
+                        <img src="icons/arxiv-icon.svg" alt=""> arXiv
+                    </a>
+                    <a href="https://github.com/Visual-AI/Category-Discovery" target="_blank" rel="noopener" class="button">
+                        <img src="icons/github-icon.svg" alt=""> Living Survey
+                    </a>
+                    <a href="#bibtex" class="button">
+                        <img src="icons/bibtex-icon.svg" alt=""> BibTeX
+                    </a>
+                </div>
+
+                <img src="figs/open-world-comparison.png" alt="Comparison between semi-supervised learning, open-set recognition and category discovery" class="hero-figure">
+                <p class="description">
+                    Category Discovery asks a model to organize unlabelled data into semantically coherent groups while using labelled examples from known categories as transferable knowledge. Unlike semi-supervised learning, it does not assume a fixed label space; unlike open-set recognition and out-of-distribution detection, it goes beyond rejecting unknowns and actively discovers their category structure. This survey offers an open-world view of the field, unifying its settings, methods, benchmarks, insights, and unresolved challenges.
+                </p>
+            </div>
+        </section>
+
+        <section id="contributions" class="full-width-section">
+            <div class="section-content">
+                <div class="section-header">
+                    <h2 class="large-header">Core Contributions</h2>
+                    <p class="small-text">A comprehensive map of category discovery, from foundational problem definitions to practical open-world scenarios and standardized benchmarking.</p>
+                </div>
+
+                <div class="contributions-grid">
+                    <article class="contribution-item">
+                        <span class="number-badge">1</span>
+                        <h3>A Multi-Faceted Taxonomy</h3>
+                        <p>The literature is organized into two base settings, seven derived settings, and extensions across other data modalities, revealing how assumptions and real-world constraints reshape the discovery problem.</p>
+                    </article>
+                    <article class="contribution-item">
+                        <span class="number-badge">2</span>
+                        <h3>A Unified Method Lens</h3>
+                        <p>Methods are analyzed through three recurring components: representation learning, label assignment, and estimation of the number of categories.</p>
+                    </article>
+                    <article class="contribution-item">
+                        <span class="number-badge">3</span>
+                        <h3>Consolidated Benchmarks</h3>
+                        <p>NCD and GCD methods are compared across generic and fine-grained datasets, with careful attention to backbones, splits, protocols, and reproducibility.</p>
+                    </article>
+                    <article class="contribution-item">
+                        <span class="number-badge">4</span>
+                        <h3>Actionable Research Directions</h3>
+                        <p>The survey distills what currently works and identifies the major gaps that must be addressed before category discovery can operate reliably in the open world.</p>
+                    </article>
+                </div>
+
+                <div class="roadmap">
+                    <h3>Category Discovery: From Proposal to Open-World Expansion</h3>
+                    <div class="roadmap-track">
+                        <div class="milestone">
+                            <span class="milestone-dot"></span>
+                            <strong>2019</strong>
+                            <span>NCD formalizes category discovery</span>
+                        </div>
+                        <div class="milestone">
+                            <span class="milestone-dot"></span>
+                            <strong>2020</strong>
+                            <span>Early self-supervised NCD methods</span>
+                        </div>
+                        <div class="milestone">
+                            <span class="milestone-dot"></span>
+                            <strong>2021</strong>
+                            <span>DINO strengthens visual representations</span>
+                        </div>
+                        <div class="milestone">
+                            <span class="milestone-dot"></span>
+                            <strong>2022</strong>
+                            <span>GCD, CCD, domain shift, and few-shot settings</span>
+                        </div>
+                        <div class="milestone">
+                            <span class="milestone-dot"></span>
+                            <strong>2023</strong>
+                            <span>Scene understanding, text, tabular, and 3D</span>
+                        </div>
+                        <div class="milestone">
+                            <span class="milestone-dot"></span>
+                            <strong>2024+</strong>
+                            <span>Federated, semantic, video, and broader scenarios</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="taxonomy" class="full-width-section">
+            <div class="section-content">
+                <div class="section-header">
+                    <h2 class="large-header">A Multi-Faceted Taxonomy</h2>
+                    <p class="small-text">A single axis cannot capture the diversity of category discovery. The survey separates label-space assumptions, deployment challenges, and data modalities.</p>
+                </div>
+
+                <div class="settings-grid">
+                    <article class="setting-card ncd">
+                        <h3>Novel Category Discovery (NCD)</h3>
+                        <p>Transfer knowledge from labelled base categories to cluster an unlabelled set containing only unseen categories. NCD isolates the challenge of discovering novel semantic structure.</p>
+                        <span class="formula">Y<sub>L</sub> &cap; Y<sub>U</sub> = &empty;</span>
+                    </article>
+                    <article class="setting-card gcd">
+                        <h3>Generalized Category Discovery (GCD)</h3>
+                        <p>Cluster unlabelled data that mixes instances from seen and unseen categories. GCD better reflects real deployments but introduces bias toward labelled classes.</p>
+                        <span class="formula">Y<sub>L</sub> &cap; Y<sub>U</sub> &ne; &empty;</span>
+                    </article>
+                </div>
+
+                <div class="taxonomy-block">
+                    <h3>Derived Settings</h3>
+                    <div class="chip-list">
+                        <span class="chip derived">Continual CD</span>
+                        <span class="chip derived">On-the-Fly CD</span>
+                        <span class="chip derived">CD with Domain Shift</span>
+                        <span class="chip derived">Distribution-Agnostic CD</span>
+                        <span class="chip derived">Semantic CD</span>
+                        <span class="chip derived">Few-Shot CD</span>
+                        <span class="chip derived">Federated CD</span>
+                    </div>
+                </div>
+
+                <div class="taxonomy-block">
+                    <h3>Beyond Image Classification</h3>
+                    <div class="chip-list">
+                        <span class="chip modality">Segmentation &amp; Detection</span>
+                        <span class="chip modality">Video</span>
+                        <span class="chip modality">3D Point Clouds</span>
+                        <span class="chip modality">Text</span>
+                        <span class="chip modality">Tabular Data</span>
+                        <span class="chip modality">Graphs</span>
+                        <span class="chip modality">Multi-Modal Data</span>
+                    </div>
+                </div>
+
+                <img src="figs/settings-overview.png" alt="Overview of the category discovery taxonomy for base and derived settings" class="taxonomy-figure settings-overview-figure">
+                <p class="figure-caption">Overview of the category discovery taxonomy across the two base settings and seven derived settings summarized in the survey.</p>
+            </div>
+        </section>
+
+        <section id="components" class="full-width-section">
+            <div class="section-content">
+                <div class="section-header">
+                    <h2 class="large-header">Three Fundamental Components</h2>
+                    <p class="small-text">Across NCD, GCD, and their extensions, methods repeatedly make three coupled decisions. Progress often comes from improving one component without destabilizing the others.</p>
+                </div>
+
+                <div class="components-grid">
+                    <article class="component-card">
+                        <span class="component-label">Component 01</span>
+                        <h3>Representation Learning</h3>
+                        <p>Learn features that transfer knowledge from labelled categories while preserving separability among unknown categories. Modern approaches increasingly rely on self-supervised ViTs, part-level cues, hierarchy, and auxiliary semantics.</p>
+                        <div class="method-tags">
+                            <span>Contrastive Learning</span>
+                            <span>Self-Distillation</span>
+                            <span>Prompts</span>
+                            <span>Hierarchy</span>
+                        </div>
+                    </article>
+                    <article class="component-card">
+                        <span class="component-label">Component 02</span>
+                        <h3>Label Assignment</h3>
+                        <p>Convert learned representations into category assignments. Parametric classifiers scale well and support end-to-end training, while non-parametric clustering flexibly captures emerging category structures.</p>
+                        <div class="method-tags">
+                            <span>Parametric Classifier</span>
+                            <span>k-means</span>
+                            <span>GMM</span>
+                            <span>Graph Clustering</span>
+                        </div>
+                    </article>
+                    <article class="component-card">
+                        <span class="component-label">Component 03</span>
+                        <h3>Class Number Estimation</h3>
+                        <p>Infer how many novel categories are present. This remains one of the least solved parts of the pipeline, especially when estimation must be efficient, stable, online, or jointly optimized with representations.</p>
+                        <div class="method-tags">
+                            <span>Search &amp; Validation</span>
+                            <span>Split &amp; Merge</span>
+                            <span>Communities</span>
+                            <span>Density Peaks</span>
+                        </div>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section id="benchmark" class="full-width-section">
+            <div class="section-content">
+                <div class="section-header">
+                    <h2 class="large-header">Benchmarking Takeaways</h2>
+                    <p class="small-text">The consolidated evaluations reveal several robust trends across generic and fine-grained category discovery benchmarks.</p>
+                </div>
+
+                <div class="insights-grid">
+                    <article class="insight-card">
+                        <span class="metric">Part-Level Cues</span>
+                        <h3>Local detail matters for fine-grained discovery</h3>
+                        <p>Global features often miss subtle inter-class differences. Explicitly modeling discriminative regions and object parts consistently improves fine-grained category separation.</p>
+                    </article>
+                    <article class="insight-card">
+                        <span class="metric">10%+</span>
+                        <h3>Stronger pretrained backbones reshape the field</h3>
+                        <p>Large-scale self-supervised backbones provide a decisive advantage. The survey reports DINOv2 outperforming DINO by more than 10% in its consolidated benchmarks.</p>
+                    </article>
+                    <article class="insight-card">
+                        <span class="metric">Hierarchy</span>
+                        <h3>Coarse-to-fine structure is a valuable inductive bias</h3>
+                        <p>Hierarchical supervision and hyperbolic representations improve discovery by encoding relations among categories rather than treating every category as equally unrelated.</p>
+                    </article>
+                    <article class="insight-card">
+                        <span class="metric">Auxiliary Signals</span>
+                        <h3>Visual features are not the whole story</h3>
+                        <p>Object-level cues, text, and vision-language knowledge provide complementary semantic grounding, although careful evaluation is needed to avoid memorization and data leakage.</p>
+                    </article>
+                </div>
+
+                <div class="table-container">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Evaluation Choice</th>
+                                <th>What It Measures</th>
+                                <th>When It Is Used</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><strong>Task-Aware Accuracy</strong></td>
+                                <td>Applies Hungarian matching separately to base and novel category subsets.</td>
+                                <td>Standard for NCD and sometimes reported for GCD analysis.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Task-Agnostic Accuracy</strong></td>
+                                <td>Matches predictions over the entire unlabelled label space in one joint assignment.</td>
+                                <td>The most common and realistic protocol for GCD.</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Continual Metrics</strong></td>
+                                <td>Track both discovery ability and forgetting across multiple timesteps.</td>
+                                <td>Used for continual category discovery settings.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section id="future" class="full-width-section">
+            <div class="section-content">
+                <div class="section-header">
+                    <h2 class="large-header">Discussion and Forward Looking</h2>
+                    <p class="small-text">The path toward real open-world learning is not a single benchmark improvement. It requires discovery systems that remain adaptive, trustworthy, and scalable as the world changes.</p>
+                </div>
+
+                <div class="future-grid">
+                    <article class="future-card">
+                        <h3>Adaptive Label Assignment</h3>
+                        <p>No parametric or non-parametric strategy is universally best. Future methods should adapt assignment mechanisms to representation quality, category granularity, and distribution shape.</p>
+                    </article>
+                    <article class="future-card">
+                        <h3>Joint and Efficient Class Estimation</h3>
+                        <p>Class-number estimation should move from a costly post-hoc step toward a stable training-time process that scales to large and streaming datasets.</p>
+                    </article>
+                    <article class="future-card">
+                        <h3>Careful Cross-Modal Discovery</h3>
+                        <p>Language can provide rich semantic priors, but benchmarks must control for pretraining overlap and distinguish genuine open-world generalization from memorization.</p>
+                    </article>
+                    <article class="future-card">
+                        <h3>Complex Multi-Object Scenes</h3>
+                        <p>Most current methods assume one salient object per image. Real scenes require instance disentanglement, localization, and discovery under clutter, occlusion, and interactions.</p>
+                    </article>
+                    <article class="future-card">
+                        <h3>Toward Unified Real-World Settings</h3>
+                        <p>Practical systems must simultaneously handle continual updates, domain shifts, class imbalance, heterogeneous clients, and discovery beyond image-level recognition. These challenges are often studied separately today, but they co-occur in deployment.</p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <div class="bibtex-section full-width-section" id="bibtex">
+            <div class="section-content">
+                <h2 class="title-center">BibTeX</h2>
+                <div class="bibtex-container">
+                    <div class="bibtex-wrapper">
+                        <button class="copy-button" onclick="copyBibtex()" aria-label="Copy BibTeX">
+                            <img src="icons/bibtex-icon.svg" alt="">
+                        </button>
+                        <pre class="bibtex-entry" id="bibtex-entry">@article{he2025category,
+  title={Category Discovery: An Open-World Perspective},
+  author={He, Zhenqi and Liu, Yuanpei and Han, Kai},
+  journal={arXiv preprint arXiv:2509.22542},
+  year={2025},
+  url={https://arxiv.org/abs/2509.22542}
+}</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        function copyBibtex() {
+            const bibtexEntry = document.getElementById("bibtex-entry").innerText.trim();
+            navigator.clipboard.writeText(bibtexEntry).then(() => {
+                alert("BibTeX copied to clipboard!");
+            }).catch((error) => {
+                console.error("Failed to copy BibTeX:", error);
+            });
+        }
+    </script>
+</body>
+</html>
